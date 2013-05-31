@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Linq;
 using System.Web;
 using Moq;
 using NUnit.Framework;
@@ -95,6 +94,7 @@ namespace Elmah.ElasticSearch.Tests
             var responseMock = new Mock<IIndexResponse>();
 
             responseMock.Setup(x => x.Id).Returns(id);
+            responseMock.Setup(x => x.IsValid).Returns(true);
             elasticClientMock.Setup(x => x.Index(It.IsAny<ErrorDocument>())).Returns(responseMock.Object);
 
             var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)

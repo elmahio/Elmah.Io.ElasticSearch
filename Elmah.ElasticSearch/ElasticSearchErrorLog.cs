@@ -42,8 +42,13 @@ namespace Elmah.ElasticSearch
                     User = error.User,
                     WebHostHtmlMessage = error.WebHostHtmlMessage,
                 });
+
             if (!indexResponse.IsValid)
-                throw new ApplicationException(string.Format("Could not log error to elasticsearch:{0}", indexResponse.ConnectionStatus));
+            {
+                throw new ApplicationException(string.Format("Could not log error to elasticsearch: {0}",
+                                                             indexResponse.ConnectionStatus));
+            }
+
             return indexResponse.Id;
         }
 
@@ -69,8 +74,7 @@ namespace Elmah.ElasticSearch
             {
                 var error = ErrorXml.DecodeString(errorDocument.ErrorXml);
                 error.ApplicationName = ApplicationName;
-                errorEntryList.Add(new ErrorLogEntry(this, errorDocument.Id,
-                                                     error));
+                errorEntryList.Add(new ErrorLogEntry(this, errorDocument.Id, error));
             }
 
             return result.Total;
@@ -116,10 +120,12 @@ namespace Elmah.ElasticSearch
                         .Add("search.slowlog.threshold.fetch.warn", "1s"))
                     .AddMapping<ErrorDocument>(m => m.MapFromAttributes())
                 );
+
                 if (!createIndexResult.IsValid)
-                    throw new ApplicationException(string.Format("Could not create elasticsearch ELMAH index:{0}", createIndexResult.ConnectionStatus));
-    
-                
+                {
+                    throw new ApplicationException(string.Format("Could not create elasticsearch ELMAH index:{0}",
+                                                                 createIndexResult.ConnectionStatus));
+                }
             }
         }
 
