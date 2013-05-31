@@ -42,6 +42,8 @@ namespace Elmah.ElasticSearch
                     User = error.User,
                     WebHostHtmlMessage = error.WebHostHtmlMessage,
                 });
+            if (!indexResponse.IsValid)
+                throw new ApplicationException(string.Format("Could not log error to elasticsearch:{0}", indexResponse.ConnectionStatus));
             return indexResponse.Id;
         }
 
@@ -104,17 +106,9 @@ namespace Elmah.ElasticSearch
             connectionSettings.SetDefaultIndex(defaultIndex);
             _elasticClient = new ElasticClient(connectionSettings);
 
-            ConnectionStatus status;
-            if (!_elasticClient.TryConnect(out status))
-            {
-                throw new ApplicationException(
-                    string.Format("Could not connect to ElasticSearch: " +
-                                  (status.Error != null ? status.ToString() : "Unknown reason")));
-            }
-
             if (!_elasticClient.IndexExists(defaultIndex).Exists)
             {
-                _elasticClient.CreateIndex(defaultIndex, c => c
+                var createIndexResult = _elasticClient.CreateIndex(defaultIndex, c => c
                     .NumberOfReplicas(0)
                     .NumberOfShards(1)
                     .Settings(s => s
@@ -122,6 +116,10 @@ namespace Elmah.ElasticSearch
                         .Add("search.slowlog.threshold.fetch.warn", "1s"))
                     .AddMapping<ErrorDocument>(m => m.MapFromAttributes())
                 );
+                if (!createIndexResult.IsValid)
+                    throw new ApplicationException(string.Format("Could not create elasticsearch ELMAH index:{0}", createIndexResult.ConnectionStatus));
+    
+                
             }
         }
 
