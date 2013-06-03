@@ -104,7 +104,9 @@ namespace Elmah.ElasticSearch
 
         private void InitElasticSearch(IDictionary config)
         {
-            var defaultIndex = "elmah";
+            var defaultIndex = !string.IsNullOrWhiteSpace(config["defaultIndex"] as string)
+                                   ? config["defaultIndex"].ToString().ToLower()
+                                   : "elmah";
             var url = LoadConnectionString(config);
             var connectionSettings = new ConnectionSettings(new Uri(url));
             connectionSettings.SetDefaultIndex(defaultIndex);
