@@ -18,7 +18,10 @@ That's it, dudes!
 
 If you don't like the default generated index named _elmah_, you should override it by specifying a default index name:
 
-    <errorLog type="Elmah.ElasticSearch.ElasticSearchErrorLog, Elmah.ElasticSearch" connectionStringName="ElmahElasticSearch" defaultIndex="myindex" />
+    <errorLog
+        type="Elmah.ElasticSearch.ElasticSearchErrorLog, Elmah.ElasticSearch"
+        connectionStringName="ElmahElasticSearch"
+        defaultIndex="myindex" />
 
 ## Respect
 
