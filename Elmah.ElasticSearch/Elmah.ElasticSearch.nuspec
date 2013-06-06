@@ -1,0 +1,23 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <version>$version$</version>
+    <authors>ThomasArdal</authors>
+    <owners />
+    <dependencies>
+      <dependency id="elmah" version="1.2.2" />
+      <dependency id="elmah.corelibrary" version="1.2.2" />
+      <dependency id="NEST" version="0.10.1.0" />
+      <dependency id="Newtonsoft.Json" version="5.0.5" />
+    </dependencies>
+    <id>Elmah.ElasticSearch</id>
+    <title>Elmah.ElasticSearch</title>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Elmah.ElasticSearch is a ElasticSearch storage backend for ELMAH.</description>
+    <projectUrl>https://github.com/ThomasArdal/Elmah.ElasticSearch</projectUrl>
+  </metadata>
+  <files>
+    <file src="bin\$Configuration$\Elmah.ElasticSearch.dll" target="lib\net40\Elmah.ElasticSearch.dll" />
+    <file src="bin\$Configuration$\Elmah.ElasticSearch.pdb" target="lib\net40\Elmah.ElasticSearch.pdb" />
+  </files>
+</package>
