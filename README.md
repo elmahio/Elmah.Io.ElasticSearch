@@ -19,3 +19,7 @@ That's it, dudes!
 If you don't like the default generated index named _elmah_, you should override it by specifying a default index name:
 
     <errorLog type="Elmah.ElasticSearch.ElasticSearchErrorLog, Elmah.ElasticSearch" connectionStringName="ElmahElasticSearch" defaultIndex="myindex" />
+
+## Respect
+
+[![Build by TeamCity](http://www.jetbrains.com/img/banners/Codebetter300x250.png)](http://www.jetbrains.com/teamcity/)
