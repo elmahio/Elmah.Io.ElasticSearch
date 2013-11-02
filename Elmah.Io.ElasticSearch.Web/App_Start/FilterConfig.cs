@@ -1,6 +1,7 @@
-﻿using System.Web.Mvc;
+﻿using System.Web;
+using System.Web.Mvc;
 
-namespace Elmah.Io.ElasticSearch.Web.App_Start
+namespace Elmah.Io.ElasticSearch.Web
 {
     public class FilterConfig
     {

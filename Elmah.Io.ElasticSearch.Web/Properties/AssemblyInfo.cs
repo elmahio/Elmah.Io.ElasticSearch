@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Elmah.Io.ElasticSearch.Web")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("elmah.io")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Elmah.Io.ElasticSearch.Web")]
-[assembly: AssemblyCopyright("Copyright © elmah.io 2013")]
+[assembly: AssemblyCopyright("Copyright ©  2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("cf875b7d-00f1-4c52-938d-44927a6e0d11")]
+[assembly: Guid("beac416f-ca21-473f-92a4-c13a462074a3")]
 
 // Version information for an assembly consists of the following four values:
 //
