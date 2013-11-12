@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <version>$version$</version>
-    <authors>ThomasArdal</authors>
+    <authors>elmah.io</authors>
     <owners />
     <dependencies>
       <dependency id="elmah" version="1.2.2" />
@@ -14,7 +14,7 @@
     <title>Elmah.ElasticSearch</title>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Elmah.ElasticSearch is a ElasticSearch storage backend for ELMAH.</description>
-    <projectUrl>https://github.com/ThomasArdal/Elmah.ElasticSearch</projectUrl>
+    <projectUrl>https://github.com/elmahio/Elmah.Io.ElasticSearch</projectUrl>
   </metadata>
   <files>
     <file src="bin\$Configuration$\Elmah.ElasticSearch.dll" target="lib\net40\Elmah.ElasticSearch.dll" />
