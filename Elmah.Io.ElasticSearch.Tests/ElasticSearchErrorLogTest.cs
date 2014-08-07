@@ -27,7 +27,7 @@ namespace Elmah.Io.ElasticSearch.Tests
             var errorDoc2 = new ErrorDocument { ErrorXml = errorXml2, Id = id2 };
 
             var elasticClientMock = new Mock<IElasticClient>();
-            var queryResponse = new Mock<IQueryResponse<ErrorDocument>>();
+            var queryResponse = new Mock<ISearchResponse<ErrorDocument>>();
 
             queryResponse.Setup(x => x.Total).Returns(2);
             queryResponse.Setup(x => x.Documents).Returns(new[] {errorDoc1, errorDoc2});
@@ -63,8 +63,13 @@ namespace Elmah.Io.ElasticSearch.Tests
 
             var elasticClientMock = new Mock<IElasticClient>();
             elasticClientMock
-                .Setup(x => x.Get<ErrorDocument>(id))
-                .Returns(new ErrorDocument {ErrorXml = errorXml});
+                .Setup(x => x.Get<ErrorDocument>(id, null, null))
+                .Returns(() =>
+                {
+                    var mockResponse = new Mock<IGetResponse<ErrorDocument>>();
+                    mockResponse.Setup(x => x.Source).Returns(new ErrorDocument { ErrorXml = errorXml });
+                    return mockResponse.Object;
+                });
 
             var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
             {
@@ -95,7 +100,9 @@ namespace Elmah.Io.ElasticSearch.Tests
 
             responseMock.Setup(x => x.Id).Returns(id);
             responseMock.Setup(x => x.IsValid).Returns(true);
-            elasticClientMock.Setup(x => x.Index(It.IsAny<ErrorDocument>())).Returns(responseMock.Object);
+            elasticClientMock
+                .Setup(x => x.Index(It.IsAny<ErrorDocument>(), It.IsAny<Func<IndexDescriptor<ErrorDocument>, IndexDescriptor<ErrorDocument>>>()))
+                .Returns(responseMock.Object);
 
             var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
                 {
@@ -112,10 +119,19 @@ namespace Elmah.Io.ElasticSearch.Tests
                 x.Index(
                     It.Is<ErrorDocument>(
                         d =>
-                        d.ApplicationName == applicationName && d.Detail == error.Detail && d.HostName == error.HostName &&
-                        d.Id != null && d.Id.Length > 0 && d.Message == error.Message && d.Source == error.Source &&
-                        d.StatusCode == error.StatusCode && d.Time == error.Time && d.Type == error.Type &&
-                        d.User == error.User && d.WebHostHtmlMessage == error.WebHostHtmlMessage)));
+                        d.ApplicationName == applicationName 
+                        && d.Detail == error.Detail 
+                        && d.HostName == error.HostName 
+                        && d.Id != null 
+                        && d.Id.Length > 0 
+                        && d.Message == error.Message 
+                        && d.Source == error.Source 
+                        && d.StatusCode == error.StatusCode 
+                        && d.Time == error.Time 
+                        && d.Type == error.Type 
+                        && d.User == error.User 
+                        && d.WebHostHtmlMessage == error.WebHostHtmlMessage
+                        ), It.IsAny<Func<IndexDescriptor<ErrorDocument>, IndexDescriptor<ErrorDocument>>>()));
         }
     }
 }

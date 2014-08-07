@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Configuration;
+using System.Linq;
 using System.Security.Cryptography;
 using Nest;
 
@@ -54,8 +55,8 @@ namespace Elmah.Io.ElasticSearch
 
         public override ErrorLogEntry GetError(string id)
         {
-            var document = _elasticClient.Get<ErrorDocument>(id);
-            var error = ErrorXml.DecodeString(document.ErrorXml);
+            var errorDoc = _elasticClient.Get<ErrorDocument>(id).Source;
+            var error = ErrorXml.DecodeString(errorDoc.Source);
             error.ApplicationName = ApplicationName;
             var result = new ErrorLogEntry(this, id, error);
             return result;
@@ -77,7 +78,7 @@ namespace Elmah.Io.ElasticSearch
                 errorEntryList.Add(new ErrorLogEntry(this, errorDocument.Id, error));
             }
 
-            return result.Total;
+            return (int)result.Total;
         }
 
         private string LoadConnectionString(IDictionary config)
@@ -104,15 +105,15 @@ namespace Elmah.Io.ElasticSearch
 
         private void InitElasticSearch(IDictionary config)
         {
-            var defaultIndex = !string.IsNullOrWhiteSpace(config["defaultIndex"] as string)
-                                   ? config["defaultIndex"].ToString().ToLower()
-                                   : "elmah";
             var url = LoadConnectionString(config);
-            var connectionSettings = new ConnectionSettings(new Uri(url));
-            connectionSettings.SetDefaultIndex(defaultIndex);
-            _elasticClient = new ElasticClient(connectionSettings);
 
-            if (!_elasticClient.IndexExists(defaultIndex).Exists)
+            var defaultIndex = url.Split('/').Last();
+            var conString = url.Substring(0, url.Length - defaultIndex.Length);
+            var conSettings = new ConnectionSettings(new Uri(conString), defaultIndex);
+            _elasticClient = new ElasticClient(conSettings);
+
+
+            if (!_elasticClient.IndexExists(new IndexExistsRequest(defaultIndex)).Exists)
             {
                 var createIndexResult = _elasticClient.CreateIndex(defaultIndex, c => c
                     .NumberOfReplicas(0)
