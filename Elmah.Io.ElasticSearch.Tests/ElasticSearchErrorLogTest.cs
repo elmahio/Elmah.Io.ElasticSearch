@@ -55,21 +55,19 @@ namespace Elmah.Io.ElasticSearch.Tests
         {
             // Arrange
             var fixture = new Fixture();
-            var id = fixture.Create<string>();
+            const string id = "mock error id";
             var applicationName = fixture.Create<string>();
 
             var error = new Error(new HttpException());
             var errorXml = ErrorXml.EncodeString(error);
 
+            var mockResponse = new Mock<IGetResponse<ErrorDocument>>();
+            mockResponse.Setup(x => x.Source).Returns(new ErrorDocument { ErrorXml = errorXml });
+
             var elasticClientMock = new Mock<IElasticClient>();
             elasticClientMock
-                .Setup(x => x.Get<ErrorDocument>(id, null, null))
-                .Returns(() =>
-                {
-                    var mockResponse = new Mock<IGetResponse<ErrorDocument>>();
-                    mockResponse.Setup(x => x.Source).Returns(new ErrorDocument { ErrorXml = errorXml });
-                    return mockResponse.Object;
-                });
+                .Setup(x => x.Get<ErrorDocument>(id, It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(mockResponse.Object);
 
             var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
             {
