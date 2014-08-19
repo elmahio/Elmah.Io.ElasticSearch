@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections;
 using System.Configuration;
-using System.Security.Cryptography;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Security.Policy;
 using Nest;
 
+[assembly:InternalsVisibleTo("Elmah.Io.ElasticSearch.Tests")]
 namespace Elmah.Io.ElasticSearch
 {
     public class ElasticSearchErrorLog : ErrorLog
     {
-        IElasticClient _elasticClient;
+        private IElasticClient _elasticClient;
 
         public ElasticSearchErrorLog(IDictionary config)
         {
@@ -28,25 +31,24 @@ namespace Elmah.Io.ElasticSearch
         public override string Log(Error error)
         {
             var indexResponse = _elasticClient.Index(new ErrorDocument
-                {
-                    Id = GenerateUniqueId(),
-                    ApplicationName = ApplicationName,
-                    ErrorXml = ErrorXml.EncodeString(error),
-                    Detail = error.Detail,
-                    HostName = error.HostName,
-                    Message = error.Message,
-                    Source = error.Source,
-                    StatusCode = error.StatusCode,
-                    Time = error.Time,
-                    Type = error.Type,
-                    User = error.User,
-                    WebHostHtmlMessage = error.WebHostHtmlMessage,
-                });
+            {
+                ApplicationName = ApplicationName,
+                ErrorXml = ErrorXml.EncodeString(error),
+                Detail = error.Detail,
+                HostName = error.HostName,
+                Message = error.Message,
+                Source = error.Source,
+                StatusCode = error.StatusCode,
+                Time = error.Time,
+                Type = error.Type,
+                User = error.User,
+                WebHostHtmlMessage = error.WebHostHtmlMessage,
+            });
 
             if (!indexResponse.IsValid)
             {
                 throw new ApplicationException(string.Format("Could not log error to elasticsearch: {0}",
-                                                             indexResponse.ConnectionStatus));
+                    indexResponse.ConnectionStatus));
             }
 
             return indexResponse.Id;
@@ -54,8 +56,8 @@ namespace Elmah.Io.ElasticSearch
 
         public override ErrorLogEntry GetError(string id)
         {
-            var document = _elasticClient.Get<ErrorDocument>(id);
-            var error = ErrorXml.DecodeString(document.ErrorXml);
+            var errorDoc = _elasticClient.Get<ErrorDocument>(id).Source;
+            var error = ErrorXml.DecodeString(errorDoc.Source);
             error.ApplicationName = ApplicationName;
             var result = new ErrorLogEntry(this, id, error);
             return result;
@@ -68,7 +70,7 @@ namespace Elmah.Io.ElasticSearch
                 .Skip(pageSize*pageIndex)
                 .Take(pageSize)
                 .Sort(s => s.OnField(e => e.Time).Descending())
-            );
+                );
 
             foreach (var errorDocument in result.Documents)
             {
@@ -77,7 +79,7 @@ namespace Elmah.Io.ElasticSearch
                 errorEntryList.Add(new ErrorLogEntry(this, errorDocument.Id, error));
             }
 
-            return result.Total;
+            return (int) result.Total;
         }
 
         private string LoadConnectionString(IDictionary config)
@@ -87,7 +89,7 @@ namespace Elmah.Io.ElasticSearch
             // subsequently indexed into the <connectionStrings> section of 
             // the configuration to get the actual connection string.
 
-            var connectionStringName = (string)config["connectionStringName"];
+            var connectionStringName = (string) config["connectionStringName"];
 
             if (!string.IsNullOrEmpty(connectionStringName))
             {
@@ -104,15 +106,15 @@ namespace Elmah.Io.ElasticSearch
 
         private void InitElasticSearch(IDictionary config)
         {
-            var defaultIndex = !string.IsNullOrWhiteSpace(config["defaultIndex"] as string)
-                                   ? config["defaultIndex"].ToString().ToLower()
-                                   : "elmah";
             var url = LoadConnectionString(config);
-            var connectionSettings = new ConnectionSettings(new Uri(url));
-            connectionSettings.SetDefaultIndex(defaultIndex);
-            _elasticClient = new ElasticClient(connectionSettings);
 
-            if (!_elasticClient.IndexExists(defaultIndex).Exists)
+            var defaultIndex = GetDefaultIndex(config, url);
+            var conString = RemoveDefaultIndexFromConnectionString(url);
+            var conSettings = new ConnectionSettings(new Uri(conString), defaultIndex);
+            _elasticClient = new ElasticClient(conSettings);
+
+
+            if (!_elasticClient.IndexExists(new IndexExistsRequest(defaultIndex)).Exists)
             {
                 var createIndexResult = _elasticClient.CreateIndex(defaultIndex, c => c
                     .NumberOfReplicas(0)
@@ -121,29 +123,45 @@ namespace Elmah.Io.ElasticSearch
                         .Add("merge.policy.merge_factor", "10")
                         .Add("search.slowlog.threshold.fetch.warn", "1s"))
                     .AddMapping<ErrorDocument>(m => m.MapFromAttributes())
-                );
+                    );
 
                 if (!createIndexResult.IsValid)
                 {
                     throw new ApplicationException(string.Format("Could not create elasticsearch ELMAH index:{0}",
-                                                                 createIndexResult.ConnectionStatus));
+                        createIndexResult.ConnectionStatus));
                 }
             }
         }
 
         /// <summary>
-        /// We'll generate an _id for ElasticSearch so it's a predictable format
+        /// In the previous version the default index would come from the elmah configuration.
+        /// 
+        /// This version supports pulling the default index from the connection string which is cleaner and easier to manage.
         /// </summary>
-        /// <returns></returns>
-        private string GenerateUniqueId()
+        internal static string GetDefaultIndex(IDictionary config, string connectionString)
         {
-            using (var rng = new RNGCryptoServiceProvider())
+            //step 1: try to get the default index from the connection string
+            var defaultConnectionString = GetDefaultIndexFromConnectionString(connectionString);
+            if (defaultConnectionString != null)
             {
-                // change the size of the array depending on your requirements
-                var rndBytes = new byte[8];
-                rng.GetBytes(rndBytes);
-                return BitConverter.ToString(rndBytes).Replace("-", "");
+                return defaultConnectionString;
             }
+
+            //step 2: we couldn't find it in the connection string so get it from the elmah config section or use the default
+            return !string.IsNullOrWhiteSpace(config["defaultIndex"] as string) ? config["defaultIndex"].ToString().ToLower() : "elmah";
+        }
+
+        internal static string GetDefaultIndexFromConnectionString(string connectionString)
+        {
+            const string portString = ":9200/";
+            var trailingPiece = connectionString.Substring(connectionString.IndexOf(portString, StringComparison.InvariantCulture) + portString.Length);
+            return !string.IsNullOrWhiteSpace(trailingPiece) ? trailingPiece : null;
+        }
+
+        internal static string RemoveDefaultIndexFromConnectionString(string connectionString)
+        {
+            const string portString = ":9200";
+            return connectionString.Substring(0, connectionString.IndexOf(portString, StringComparison.InvariantCulture) + portString.Length);
         }
     }
 }
