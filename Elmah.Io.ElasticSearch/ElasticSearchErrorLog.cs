@@ -56,8 +56,8 @@ namespace Elmah.Io.ElasticSearch
 
         public override ErrorLogEntry GetError(string id)
         {
-            var errorDoc = _elasticClient.Get<ErrorDocument>(id).Source;
-            var error = ErrorXml.DecodeString(errorDoc.Source);
+            var errorDoc = _elasticClient.Get<ErrorDocument>(id);
+            var error = ErrorXml.DecodeString(errorDoc.Source.ErrorXml);
             error.ApplicationName = ApplicationName;
             var result = new ErrorLogEntry(this, id, error);
             return result;
@@ -72,9 +72,9 @@ namespace Elmah.Io.ElasticSearch
                 .Sort(s => s.OnField(e => e.Time).Descending())
                 );
 
-            foreach (var errorDocument in result.Documents)
+            foreach (var errorDocument in result.Hits)
             {
-                var error = ErrorXml.DecodeString(errorDocument.ErrorXml);
+                var error = ErrorXml.DecodeString(errorDocument.Source.ErrorXml);
                 error.ApplicationName = ApplicationName;
                 errorEntryList.Add(new ErrorLogEntry(this, errorDocument.Id, error));
             }
