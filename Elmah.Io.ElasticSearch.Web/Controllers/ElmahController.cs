@@ -1,11 +1,12 @@
-using System;
+﻿using System;
 using System.Web;
 using System.Web.Mvc;
 
-namespace Elmah.Io.ElasticSearch.Web.Controllers 
+namespace Elmah.Io.ElasticSearch.Web.Controllers
 {
-    public class ElmahController
-    {        
+    //[Authorize] //Add the proper authorize attributes here!
+    public class ElmahController : Controller
+    {
         public ActionResult Index()
         {
             return new ElmahResult();
@@ -92,7 +93,7 @@ namespace Elmah.Io.ElasticSearch.Web.Controllers
 
         private static HttpContext GetCurrentContext(ControllerContext context)
         {
-            var currentApplication = (HttpApplication) context.HttpContext.GetService(typeof (HttpApplication));
+            var currentApplication = (HttpApplication)context.HttpContext.GetService(typeof(HttpApplication));
             if (currentApplication == null)
             {
                 throw new NullReferenceException("currentApplication");
@@ -107,5 +108,6 @@ namespace Elmah.Io.ElasticSearch.Web.Controllers
                        ? context.HttpContext.Request.Path.Replace(String.Format("/{0}", _resouceType), string.Empty)
                        : context.HttpContext.Request.Path;
         }
+
     }
 }
