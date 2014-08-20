@@ -16,7 +16,8 @@ namespace Elmah.Io.ElasticSearch.Web
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
-                defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
+                namespaces: new []{ "Elmah.Io.ElasticSearch.Web.Controllers" },
+                defaults: new { controller = "Elmah", action = "Index", id = UrlParameter.Optional }
             );
         }
     }
