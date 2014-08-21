@@ -154,39 +154,6 @@ namespace Elmah.Io.ElasticSearch.Tests
         }
 
         /// <summary>
-        /// test getting the default index from the connection string
-        /// </summary>
-        [Test]
-        public void GetDefaultIndexFromConnectionString_NotNull()
-        {
-            //arrange
-            const string expectedDefaultIndex = "indexTest";
-            const string connectionString = "http://localhost:9200/" + expectedDefaultIndex;
-
-            //act 
-            var defaultIndex = ElasticSearchErrorLog.GetDefaultIndexFromConnectionString(connectionString);
-
-            //assert
-            Assert.AreEqual(expectedDefaultIndex, defaultIndex);
-        }
-
-        /// <summary>
-        /// test getting the default index from the connection string, in this test it does not exist
-        /// </summary>
-        [Test]
-        public void GetDefaultIndexFromConnectionString_Null()
-        {
-            //arrange
-            const string connectionString = "http://localhost:9200/";
-
-            //act 
-            var defaultIndex = ElasticSearchErrorLog.GetDefaultIndexFromConnectionString(connectionString);
-
-            //assert
-            Assert.Null(defaultIndex);
-        }
-
-        /// <summary>
         /// test getting the default from the elmah config instead of from the connection string
         /// </summary>
         [Test]
@@ -207,10 +174,25 @@ namespace Elmah.Io.ElasticSearch.Tests
             Assert.AreEqual(expectedDefaultIndex.ToLower(), defaultIndex);
         }
 
+        [TestCase("http://localhost:9200/", null)]
+        [TestCase("http://localhost:9200/indexHere", "indexHere")]
+        [TestCase("http://localhost:9201/indexHere", "indexHere")]
+        [TestCase("http://localhost/indexHere", "indexHere")]
+        public void GetDefaultIndexFromConnectionString(string connectionString, string expectedResult)
+        {
+            //act 
+            var defaultIndex = ElasticSearchErrorLog.GetDefaultIndexFromConnectionString(connectionString);
+
+            //assert
+            Assert.AreEqual(expectedResult, defaultIndex);
+        }
+
         [TestCase("http://localhost:9200/", "http://localhost:9200")]
         [TestCase("http://localhost:9200", "http://localhost:9200")]
         [TestCase("http://localhost:9200/defaultIndex123", "http://localhost:9200")]
-        public void RemoveDefaultIndexFromConnectionString_DefaultIndexNull(string connectionString, string expectedResult)
+        [TestCase("http://localhost:9201/defaultIndex123", "http://localhost:9201")]
+        [TestCase("http://localhost/defaultIndex123", "http://localhost")]
+        public void RemoveDefaultIndexFromConnectionString(string connectionString, string expectedResult)
         {
             //act 
             var connectionStringOnly = ElasticSearchErrorLog.RemoveDefaultIndexFromConnectionString(connectionString);
