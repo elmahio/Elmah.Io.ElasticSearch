@@ -57,7 +57,7 @@ namespace Elmah.Io.ElasticSearch
 
         public override ErrorLogEntry GetError(string id)
         {
-            var errorDoc = _elasticClient.Get<ErrorDocument>(id);
+            var errorDoc = _elasticClient.Get<ErrorDocument>(x => x.Id(id));
             var error = ErrorXml.DecodeString(errorDoc.Source.ErrorXml);
             error.ApplicationName = ApplicationName;
             var result = new ErrorLogEntry(this, id, error);

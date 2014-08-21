@@ -68,12 +68,7 @@ namespace Elmah.Io.ElasticSearch.Tests
             Assert.That(result.Count, Is.EqualTo(2));
         }
 
-        /// <summary>
-        /// with the update to Nest 1.0 the Get<T> method is now an extension
-        /// method and mocking those are not straight forward.  Ignoring the test for now.
-        /// </summary>
         [Test]
-        [Ignore]
         public void CanGetError()
         {
             // Arrange
@@ -89,7 +84,7 @@ namespace Elmah.Io.ElasticSearch.Tests
 
             var elasticClientMock = new Mock<IElasticClient>();
             elasticClientMock
-                .Setup(x => x.Get<ErrorDocument>(id, It.IsAny<string>(), It.IsAny<string>()))
+                .Setup(x => x.Get(It.IsAny<Func<GetDescriptor<ErrorDocument>, GetDescriptor<ErrorDocument>>>()))
                 .Returns(mockResponse.Object);
 
             var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
