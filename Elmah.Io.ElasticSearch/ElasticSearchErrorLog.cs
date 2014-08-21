@@ -72,11 +72,11 @@ namespace Elmah.Io.ElasticSearch
                 .Sort(s => s.OnField(e => e.Time).Descending())
                 );
 
-            foreach (var errorDocument in result.Hits)
+            foreach (var errorDocHit in result.Hits)
             {
-                var error = ErrorXml.DecodeString(errorDocument.Source.ErrorXml);
+                var error = ErrorXml.DecodeString(errorDocHit.Source.ErrorXml);
                 error.ApplicationName = ApplicationName;
-                errorEntryList.Add(new ErrorLogEntry(this, errorDocument.Id, error));
+                errorEntryList.Add(new ErrorLogEntry(this, errorDocHit.Id, error));
             }
 
             return (int) result.Total;

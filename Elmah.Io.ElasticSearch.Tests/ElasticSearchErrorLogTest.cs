@@ -22,18 +22,33 @@ namespace Elmah.Io.ElasticSearch.Tests
             var id2 = fixture.Create<string>();
             var applicationName = fixture.Create<string>();
 
-            var error1 = new Error(new HttpException());
-            var error2 = new Error(new HttpException());
+            var error1 = new Error(new Exception("error1"));
+            var error2 = new Error(new Exception("error2"));
             var errorXml1 = ErrorXml.EncodeString(error1);
             var errorXml2 = ErrorXml.EncodeString(error2);
-            var errorDoc1 = new ErrorDocument { ErrorXml = errorXml1, Id = id1 };
-            var errorDoc2 = new ErrorDocument { ErrorXml = errorXml2, Id = id2 };
+            var errorDoc1 = new ErrorDocument {ErrorXml = errorXml1};
+            var errorDoc2 = new ErrorDocument {ErrorXml = errorXml2};
 
             var elasticClientMock = new Mock<IElasticClient>();
             var queryResponse = new Mock<ISearchResponse<ErrorDocument>>();
 
             queryResponse.Setup(x => x.Total).Returns(2);
-            queryResponse.Setup(x => x.Documents).Returns(new[] {errorDoc1, errorDoc2});
+            queryResponse.Setup(x => x.Hits).Returns(() =>
+            {
+                var mockHit1 = new Mock<IHit<ErrorDocument>>();
+                mockHit1.Setup(x => x.Id).Returns(id1);
+                mockHit1.Setup(x => x.Source).Returns(errorDoc1);
+
+                var mockHit2 = new Mock<IHit<ErrorDocument>>();
+                mockHit2.Setup(x => x.Id).Returns(id2);
+                mockHit2.Setup(x => x.Source).Returns(errorDoc2);
+
+                return new[]
+                {
+                    mockHit1.Object,
+                    mockHit2.Object
+                };
+            });
 
             elasticClientMock
                 .Setup(x => x.Search(It.IsAny<Func<SearchDescriptor<ErrorDocument>, SearchDescriptor<ErrorDocument>>>()))
