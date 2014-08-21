@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
 using System.Web;
 using Moq;
 using NUnit.Framework;
@@ -19,18 +22,33 @@ namespace Elmah.Io.ElasticSearch.Tests
             var id2 = fixture.Create<string>();
             var applicationName = fixture.Create<string>();
 
-            var error1 = new Error(new HttpException());
-            var error2 = new Error(new HttpException());
+            var error1 = new Error(new Exception("error1"));
+            var error2 = new Error(new Exception("error2"));
             var errorXml1 = ErrorXml.EncodeString(error1);
             var errorXml2 = ErrorXml.EncodeString(error2);
-            var errorDoc1 = new ErrorDocument { ErrorXml = errorXml1, Id = id1 };
-            var errorDoc2 = new ErrorDocument { ErrorXml = errorXml2, Id = id2 };
+            var errorDoc1 = new ErrorDocument {ErrorXml = errorXml1};
+            var errorDoc2 = new ErrorDocument {ErrorXml = errorXml2};
 
             var elasticClientMock = new Mock<IElasticClient>();
-            var queryResponse = new Mock<IQueryResponse<ErrorDocument>>();
+            var queryResponse = new Mock<ISearchResponse<ErrorDocument>>();
 
             queryResponse.Setup(x => x.Total).Returns(2);
-            queryResponse.Setup(x => x.Documents).Returns(new[] {errorDoc1, errorDoc2});
+            queryResponse.Setup(x => x.Hits).Returns(() =>
+            {
+                var mockHit1 = new Mock<IHit<ErrorDocument>>();
+                mockHit1.Setup(x => x.Id).Returns(id1);
+                mockHit1.Setup(x => x.Source).Returns(errorDoc1);
+
+                var mockHit2 = new Mock<IHit<ErrorDocument>>();
+                mockHit2.Setup(x => x.Id).Returns(id2);
+                mockHit2.Setup(x => x.Source).Returns(errorDoc2);
+
+                return new[]
+                {
+                    mockHit1.Object,
+                    mockHit2.Object
+                };
+            });
 
             elasticClientMock
                 .Setup(x => x.Search(It.IsAny<Func<SearchDescriptor<ErrorDocument>, SearchDescriptor<ErrorDocument>>>()))
@@ -55,16 +73,19 @@ namespace Elmah.Io.ElasticSearch.Tests
         {
             // Arrange
             var fixture = new Fixture();
-            var id = fixture.Create<string>();
+            const string id = "mock error id";
             var applicationName = fixture.Create<string>();
 
             var error = new Error(new HttpException());
             var errorXml = ErrorXml.EncodeString(error);
 
+            var mockResponse = new Mock<IGetResponse<ErrorDocument>>();
+            mockResponse.Setup(x => x.Source).Returns(new ErrorDocument { ErrorXml = errorXml });
+
             var elasticClientMock = new Mock<IElasticClient>();
             elasticClientMock
-                .Setup(x => x.Get<ErrorDocument>(id))
-                .Returns(new ErrorDocument {ErrorXml = errorXml});
+                .Setup(x => x.Get(It.IsAny<Func<GetDescriptor<ErrorDocument>, GetDescriptor<ErrorDocument>>>()))
+                .Returns(mockResponse.Object);
 
             var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
             {
@@ -95,7 +116,9 @@ namespace Elmah.Io.ElasticSearch.Tests
 
             responseMock.Setup(x => x.Id).Returns(id);
             responseMock.Setup(x => x.IsValid).Returns(true);
-            elasticClientMock.Setup(x => x.Index(It.IsAny<ErrorDocument>())).Returns(responseMock.Object);
+            elasticClientMock
+                .Setup(x => x.Index(It.IsAny<ErrorDocument>(), It.IsAny<Func<IndexDescriptor<ErrorDocument>, IndexDescriptor<ErrorDocument>>>()))
+                .Returns(responseMock.Object);
 
             var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
                 {
@@ -112,10 +135,65 @@ namespace Elmah.Io.ElasticSearch.Tests
                 x.Index(
                     It.Is<ErrorDocument>(
                         d =>
-                        d.ApplicationName == applicationName && d.Detail == error.Detail && d.HostName == error.HostName &&
-                        d.Id != null && d.Id.Length > 0 && d.Message == error.Message && d.Source == error.Source &&
-                        d.StatusCode == error.StatusCode && d.Time == error.Time && d.Type == error.Type &&
-                        d.User == error.User && d.WebHostHtmlMessage == error.WebHostHtmlMessage)));
+                        d.ApplicationName == applicationName 
+                        && d.Detail == error.Detail 
+                        && d.HostName == error.HostName 
+                        && d.Message == error.Message 
+                        && d.Source == error.Source 
+                        && d.StatusCode == error.StatusCode 
+                        && d.Time == error.Time 
+                        && d.Type == error.Type 
+                        && d.User == error.User 
+                        && d.WebHostHtmlMessage == error.WebHostHtmlMessage
+                        ), It.IsAny<Func<IndexDescriptor<ErrorDocument>, IndexDescriptor<ErrorDocument>>>()));
+        }
+
+        /// <summary>
+        /// test getting the default from the elmah config instead of from the connection string
+        /// </summary>
+        [Test]
+        public void GetDefaultIndex_FromElmahConfig()
+        {
+            //arrange
+            const string connectionString = "http://localhost:9200/";
+            const string expectedDefaultIndex = "defaultFromConfig";
+            var dict = new Dictionary<string, string>
+            {
+                {"defaultIndex", expectedDefaultIndex}
+            };
+
+            //act 
+            var defaultIndex = ElasticSearchErrorLog.GetDefaultIndex(dict, connectionString);
+
+            //assert
+            Assert.AreEqual(expectedDefaultIndex.ToLower(), defaultIndex);
+        }
+
+        [TestCase("http://localhost:9200/", null)]
+        [TestCase("http://localhost:9200/indexHere", "indexHere")]
+        [TestCase("http://localhost:9201/indexHere", "indexHere")]
+        [TestCase("http://localhost/indexHere", "indexHere")]
+        public void GetDefaultIndexFromConnectionString(string connectionString, string expectedResult)
+        {
+            //act 
+            var defaultIndex = ElasticSearchErrorLog.GetDefaultIndexFromConnectionString(connectionString);
+
+            //assert
+            Assert.AreEqual(expectedResult, defaultIndex);
+        }
+
+        [TestCase("http://localhost:9200/", "http://localhost:9200")]
+        [TestCase("http://localhost:9200", "http://localhost:9200")]
+        [TestCase("http://localhost:9200/defaultIndex123", "http://localhost:9200")]
+        [TestCase("http://localhost:9201/defaultIndex123", "http://localhost:9201")]
+        [TestCase("http://localhost/defaultIndex123", "http://localhost")]
+        public void RemoveDefaultIndexFromConnectionString(string connectionString, string expectedResult)
+        {
+            //act 
+            var connectionStringOnly = ElasticSearchErrorLog.RemoveDefaultIndexFromConnectionString(connectionString);
+
+            //assert
+            Assert.AreEqual(expectedResult, connectionStringOnly);
         }
     }
 }
