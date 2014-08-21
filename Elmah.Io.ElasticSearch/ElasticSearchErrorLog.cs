@@ -4,6 +4,7 @@ using System.Configuration;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Security.Policy;
+using System.Text.RegularExpressions;
 using Nest;
 
 [assembly:InternalsVisibleTo("Elmah.Io.ElasticSearch.Tests")]
@@ -72,11 +73,11 @@ namespace Elmah.Io.ElasticSearch
                 .Sort(s => s.OnField(e => e.Time).Descending())
                 );
 
-            foreach (var errorDocument in result.Hits)
+            foreach (var errorDocHit in result.Hits)
             {
-                var error = ErrorXml.DecodeString(errorDocument.Source.ErrorXml);
+                var error = ErrorXml.DecodeString(errorDocHit.Source.ErrorXml);
                 error.ApplicationName = ApplicationName;
-                errorEntryList.Add(new ErrorLogEntry(this, errorDocument.Id, error));
+                errorEntryList.Add(new ErrorLogEntry(this, errorDocHit.Id, error));
             }
 
             return (int) result.Total;
@@ -153,15 +154,15 @@ namespace Elmah.Io.ElasticSearch
 
         internal static string GetDefaultIndexFromConnectionString(string connectionString)
         {
-            const string portString = ":9200/";
-            var trailingPiece = connectionString.Substring(connectionString.IndexOf(portString, StringComparison.InvariantCulture) + portString.Length);
-            return !string.IsNullOrWhiteSpace(trailingPiece) ? trailingPiece : null;
+            var leftPart = RemoveDefaultIndexFromConnectionString(connectionString);
+            var rightPart = connectionString.Substring(leftPart.Length + 1);
+            return (!string.IsNullOrWhiteSpace(rightPart)) ? rightPart : null;
         }
 
         internal static string RemoveDefaultIndexFromConnectionString(string connectionString)
         {
-            const string portString = ":9200";
-            return connectionString.Substring(0, connectionString.IndexOf(portString, StringComparison.InvariantCulture) + portString.Length);
+            var uri = new Uri(connectionString);
+            return uri.GetLeftPart(UriPartial.Authority);
         }
     }
 }
