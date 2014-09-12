@@ -8,7 +8,7 @@ namespace Elmah.Io.ElasticSearch
     {
         public string Id { get; set; }
 
-        [ElasticProperty(Index = FieldIndexOption.NotAnalyzed)]
+        [ElasticProperty(Index = FieldIndexOption.No)]
         public string ErrorXml { get; set; }
 
         [ElasticProperty(Index = FieldIndexOption.NotAnalyzed)]
