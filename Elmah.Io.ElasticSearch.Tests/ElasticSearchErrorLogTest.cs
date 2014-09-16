@@ -195,5 +195,32 @@ namespace Elmah.Io.ElasticSearch.Tests
             //assert
             Assert.AreEqual(expectedResult, connectionStringOnly);
         }
+
+        [Test]
+        public void ResolveApplicationName_Specified()
+        {
+            //arrange
+            const string expectedAppName = "app123";
+            var config = new Hashtable { { "applicationName", expectedAppName } };
+            
+            //act
+            var appName = ElasticSearchErrorLog.ResolveApplicationName(config);
+
+            //assert
+            Assert.AreEqual(expectedAppName, appName);
+        }
+
+        [Test]
+        public void ResolveApplicationName_NotSpecified()
+        {
+            //arrange
+            var config = new Hashtable();
+            
+            //act
+            var appName = ElasticSearchErrorLog.ResolveApplicationName(config);
+
+            //assert
+            Assert.AreEqual(string.Empty, appName);
+        }
     }
 }

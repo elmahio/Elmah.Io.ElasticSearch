@@ -22,6 +22,7 @@ namespace Elmah.Io.ElasticSearch
             }
 
             InitElasticSearch(config);
+            ApplicationName = ResolveApplicationName(config);
         }
 
         public ElasticSearchErrorLog(IElasticClient elasticClient)
@@ -163,6 +164,11 @@ namespace Elmah.Io.ElasticSearch
         {
             var uri = new Uri(connectionString);
             return uri.GetLeftPart(UriPartial.Authority);
+        }
+
+        internal static string ResolveApplicationName(IDictionary config)
+        {
+            return config.Contains("applicationName") ? config["applicationName"].ToString() : string.Empty;
         }
     }
 }
