@@ -155,8 +155,12 @@ namespace Elmah.Io.ElasticSearch
 
         internal static string GetDefaultIndexFromConnectionString(string connectionString)
         {
-            var leftPart = RemoveDefaultIndexFromConnectionString(connectionString);
-            var rightPart = connectionString.Substring(leftPart.Length + 1);
+            string leftPart = RemoveDefaultIndexFromConnectionString(connectionString);
+            string rightPart  = string.Empty;
+            if (leftPart.Length > 0)
+            {
+                rightPart = connectionString.Substring(leftPart.Length + 1);
+            }
             return (!string.IsNullOrWhiteSpace(rightPart)) ? rightPart : null;
         }
 

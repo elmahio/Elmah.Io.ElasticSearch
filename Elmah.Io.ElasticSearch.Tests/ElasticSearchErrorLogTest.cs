@@ -169,6 +169,7 @@ namespace Elmah.Io.ElasticSearch.Tests
             Assert.AreEqual(expectedDefaultIndex.ToLower(), defaultIndex);
         }
 
+        [TestCase("http://localhost:9200", null)]
         [TestCase("http://localhost:9200/", null)]
         [TestCase("http://localhost:9200/indexHere", "indexHere")]
         [TestCase("http://localhost:9201/indexHere", "indexHere")]
