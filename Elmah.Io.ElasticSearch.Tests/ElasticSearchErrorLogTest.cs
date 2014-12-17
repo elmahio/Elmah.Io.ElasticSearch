@@ -172,6 +172,7 @@ namespace Elmah.Io.ElasticSearch.Tests
         [TestCase("http://localhost:9200", null)]
         [TestCase("http://localhost:9200/", null)]
         [TestCase("http://localhost:9200/indexHere", "indexHere")]
+        [TestCase("http://localhost:9200/indexHere/", "indexHere")]
         [TestCase("http://localhost:9201/indexHere", "indexHere")]
         [TestCase("http://localhost/indexHere", "indexHere")]
         public void GetDefaultIndexFromConnectionString(string connectionString, string expectedResult)

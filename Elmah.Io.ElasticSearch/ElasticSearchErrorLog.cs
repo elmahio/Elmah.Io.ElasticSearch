@@ -155,13 +155,30 @@ namespace Elmah.Io.ElasticSearch
 
         internal static string GetDefaultIndexFromConnectionString(string connectionString)
         {
+            //Remove the trailing "/" if any
+            connectionString = RemoveTrailingSlash(connectionString);
+
+            //Get the URL authority
             string leftPart = RemoveDefaultIndexFromConnectionString(connectionString);
-            string rightPart  = string.Empty;
-            if (leftPart.Length > 0)
+            string rightPart = string.Empty;
+
+            //If leftpart is smaller than connectionstring
+            //that means we have a index in there
+            if (connectionString.Length > leftPart.Length)
             {
                 rightPart = connectionString.Substring(leftPart.Length + 1);
             }
             return (!string.IsNullOrWhiteSpace(rightPart)) ? rightPart : null;
+        }
+
+        internal static string RemoveTrailingSlash(string connectionString)
+        {
+            if (connectionString.EndsWith("/"))
+            {
+                connectionString = connectionString.Substring(0, connectionString.Length - 1);
+            }
+
+            return connectionString;
         }
 
         internal static string RemoveDefaultIndexFromConnectionString(string connectionString)
