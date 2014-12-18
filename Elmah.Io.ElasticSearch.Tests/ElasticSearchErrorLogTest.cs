@@ -224,5 +224,17 @@ namespace Elmah.Io.ElasticSearch.Tests
             //assert
             Assert.AreEqual(string.Empty, appName);
         }
+
+        [TestCase("", "")]
+        [TestCase("http://localhost:9200", "http://localhost:9200")]
+        [TestCase("http://localhost:9200/", "http://localhost:9200")]
+        [TestCase("http://localhost:9200/indexHere/", "http://localhost:9200/indexHere")]
+        [TestCase("http://localhost:9200/indexHere", "http://localhost:9200/indexHere")]
+        public void RemoveTralingSlash(string origString, string expectedString)
+        {
+            string newString = ElasticSearchErrorLog.RemoveTrailingSlash(origString);
+
+            Assert.AreEqual(expectedString, newString);
+        }
     }
 }
