@@ -7,7 +7,7 @@ using System.Security.Policy;
 using System.Text.RegularExpressions;
 using Nest;
 
-[assembly:InternalsVisibleTo("Elmah.Io.ElasticSearch.Tests")]
+[assembly: InternalsVisibleTo("Elmah.Io.ElasticSearch.Tests")]
 namespace Elmah.Io.ElasticSearch
 {
     public class ElasticSearchErrorLog : ErrorLog
@@ -69,7 +69,7 @@ namespace Elmah.Io.ElasticSearch
         {
             var result = _elasticClient.Search<ErrorDocument>(x => x
                 .Filter(f => f.Term(t => t.ApplicationName, ApplicationName))
-                .Skip(pageSize*pageIndex)
+                .Skip(pageSize * pageIndex)
                 .Take(pageSize)
                 .Sort(s => s.OnField(e => e.Time).Descending())
                 );
@@ -81,7 +81,7 @@ namespace Elmah.Io.ElasticSearch
                 errorEntryList.Add(new ErrorLogEntry(this, errorDocHit.Id, error));
             }
 
-            return (int) result.Total;
+            return (int)result.Total;
         }
 
         private string LoadConnectionString(IDictionary config)
@@ -91,7 +91,7 @@ namespace Elmah.Io.ElasticSearch
             // subsequently indexed into the <connectionStrings> section of 
             // the configuration to get the actual connection string.
 
-            var connectionStringName = (string) config["connectionStringName"];
+            var connectionStringName = (string)config["connectionStringName"];
 
             if (!string.IsNullOrEmpty(connectionStringName))
             {
@@ -144,7 +144,7 @@ namespace Elmah.Io.ElasticSearch
         {
             //step 1: try to get the default index from the connection string
             var defaultConnectionString = GetDefaultIndexFromConnectionString(connectionString);
-            if (defaultConnectionString != null)
+            if (!string.IsNullOrEmpty(defaultConnectionString))
             {
                 return defaultConnectionString;
             }
@@ -155,9 +155,29 @@ namespace Elmah.Io.ElasticSearch
 
         internal static string GetDefaultIndexFromConnectionString(string connectionString)
         {
-            var leftPart = RemoveDefaultIndexFromConnectionString(connectionString);
-            var rightPart = connectionString.Substring(leftPart.Length + 1);
-            return (!string.IsNullOrWhiteSpace(rightPart)) ? rightPart : null;
+            Uri myUri = new Uri(connectionString);
+
+            string[] pathSegments = myUri.Segments;
+            string ourIndex = string.Empty;
+
+            if (pathSegments.Length > 1)
+            {
+                //We might have a index here
+                ourIndex = pathSegments[1];
+                ourIndex = RemoveTrailingSlash(ourIndex);
+            }
+
+            return ourIndex;
+        }
+
+        internal static string RemoveTrailingSlash(string connectionString)
+        {
+            if (connectionString.EndsWith("/"))
+            {
+                connectionString = connectionString.Substring(0, connectionString.Length - 1);
+            }
+
+            return connectionString;
         }
 
         internal static string RemoveDefaultIndexFromConnectionString(string connectionString)

@@ -169,8 +169,10 @@ namespace Elmah.Io.ElasticSearch.Tests
             Assert.AreEqual(expectedDefaultIndex.ToLower(), defaultIndex);
         }
 
-        [TestCase("http://localhost:9200/", null)]
+        [TestCase("http://localhost:9200", "")]
+        [TestCase("http://localhost:9200/", "")]
         [TestCase("http://localhost:9200/indexHere", "indexHere")]
+        [TestCase("http://localhost:9200/indexHere/", "indexHere")]
         [TestCase("http://localhost:9201/indexHere", "indexHere")]
         [TestCase("http://localhost/indexHere", "indexHere")]
         public void GetDefaultIndexFromConnectionString(string connectionString, string expectedResult)
@@ -221,6 +223,18 @@ namespace Elmah.Io.ElasticSearch.Tests
 
             //assert
             Assert.AreEqual(string.Empty, appName);
+        }
+
+        [TestCase("", "")]
+        [TestCase("http://localhost:9200", "http://localhost:9200")]
+        [TestCase("http://localhost:9200/", "http://localhost:9200")]
+        [TestCase("http://localhost:9200/indexHere/", "http://localhost:9200/indexHere")]
+        [TestCase("http://localhost:9200/indexHere", "http://localhost:9200/indexHere")]
+        public void RemoveTralingSlash(string origString, string expectedString)
+        {
+            string newString = ElasticSearchErrorLog.RemoveTrailingSlash(origString);
+
+            Assert.AreEqual(expectedString, newString);
         }
     }
 }
