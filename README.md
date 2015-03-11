@@ -5,7 +5,7 @@ Elmah.Io.ElasticSearch is a ElasticSearch storage backend for ELMAH.
 Elmah.Io.ElasticSearch is configured pretty much like every other storage implementation for Elmah. To get started, add the following to your web.config:
 
     <connectionStrings>
-        <add name="ElmahIoElasticSearch" connectionString="http://localhost:9200"/>
+        <add name="ElmahIoElasticSearch" connectionString="http://localhost:9200/elmah"/>
     </connectionStrings>
 
     <elmah>
@@ -16,12 +16,25 @@ Replace the connection string URL with your ElasticSearch URL and add the elmah 
 
 That's it, dudes!
 
-If you don't like the default generated index named _elmah_, you should override it by specifying a default index name:
+The Elastic index name can be specified one of two ways, let's say you want the index name to be elmahCurrent:
 
-    <errorLog
-        type="Elmah.Io.ElasticSearch.ElasticSearchErrorLog, Elmah.Io.ElasticSearch"
-        connectionStringName="ElmahIoElasticSearch"
-        defaultIndex="myindex" />
+1: Put it in the connection string *(preferred)*
+```
+<connectionStrings>
+    <add name="ElmahIoElasticSearch" connectionString="http://localhost:9200/elmahCurrent"/>
+</connectionStrings>
+```
+2: Leave it off the connection string and put it in the elmah specification
+```
+<connectionStrings>
+    <add name="ElmahIoElasticSearch" connectionString="http://localhost:9200"/>
+</connectionStrings>
+
+<errorLog
+    type="Elmah.Io.ElasticSearch.ElasticSearchErrorLog, Elmah.Io.ElasticSearch"
+    connectionStringName="ElmahIoElasticSearch"
+    defaultIndex="elmahCurrent" />
+```
 
 ## Respect
 
