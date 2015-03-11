@@ -119,11 +119,6 @@ namespace Elmah.Io.ElasticSearch
             if (!_elasticClient.IndexExists(new IndexExistsRequest(defaultIndex)).Exists)
             {
                 var createIndexResult = _elasticClient.CreateIndex(defaultIndex, c => c
-                    .NumberOfReplicas(0)
-                    .NumberOfShards(1)
-                    .Settings(s => s
-                        .Add("merge.policy.merge_factor", "10")
-                        .Add("search.slowlog.threshold.fetch.warn", "1s"))
                     .AddMapping<ErrorDocument>(m => m.MapFromAttributes())
                     );
 
