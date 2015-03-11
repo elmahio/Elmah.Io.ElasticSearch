@@ -14,12 +14,22 @@ namespace Elmah.Io.ElasticSearch
         [ElasticProperty(Index = FieldIndexOption.NotAnalyzed)]
         public string ApplicationName { get; set; }
 
+        [ElasticProperty(Index = FieldIndexOption.NotAnalyzed)]
         public string HostName { get; set; }
 
+        /// <summary>
+        /// NOTE: this is a multi-field in ES.  The not_analyzed version is type.raw
+        /// </summary>
         public string Type { get; set; }
 
+        /// <summary>
+        /// NOTE: this is a multi-field in ES.  The not_analyzed version is source.raw
+        /// </summary>
         public string Source { get; set; }
 
+        /// <summary>
+        /// NOTE: this is a multi-field in ES.  The not_analyzed version is message.raw
+        /// </summary>
         public string Message { get; set; }
 
         public string Detail { get; set; }
