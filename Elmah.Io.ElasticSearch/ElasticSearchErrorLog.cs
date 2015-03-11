@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Configuration;
-using System.IO;
 using System.Runtime.CompilerServices;
-using System.Security.Policy;
-using System.Text.RegularExpressions;
 using Nest;
 
 [assembly:InternalsVisibleTo("Elmah.Io.ElasticSearch.Tests")]
@@ -46,12 +43,7 @@ namespace Elmah.Io.ElasticSearch
                 User = error.User,
                 WebHostHtmlMessage = error.WebHostHtmlMessage,
             });
-
-            if (!indexResponse.IsValid)
-            {
-                throw new ApplicationException(string.Format("Could not log error to elasticsearch: {0}",
-                    indexResponse.ConnectionStatus));
-            }
+            indexResponse.VerifySuccessfulResponse();
 
             return indexResponse.Id;
         }
@@ -59,6 +51,7 @@ namespace Elmah.Io.ElasticSearch
         public override ErrorLogEntry GetError(string id)
         {
             var errorDoc = _elasticClient.Get<ErrorDocument>(x => x.Id(id));
+            errorDoc.VerifySuccessfulResponse();
             var error = ErrorXml.DecodeString(errorDoc.Source.ErrorXml);
             error.ApplicationName = ApplicationName;
             var result = new ErrorLogEntry(this, id, error);
@@ -73,6 +66,7 @@ namespace Elmah.Io.ElasticSearch
                 .Take(pageSize)
                 .Sort(s => s.OnField(e => e.Time).Descending())
                 );
+            result.VerifySuccessfulResponse();
 
             foreach (var errorDocHit in result.Hits)
             {
@@ -84,7 +78,7 @@ namespace Elmah.Io.ElasticSearch
             return (int) result.Total;
         }
 
-        private string LoadConnectionString(IDictionary config)
+        private static string LoadConnectionString(IDictionary config)
         {
             // From ELMAH source
             // First look for a connection string name that can be 
@@ -118,15 +112,35 @@ namespace Elmah.Io.ElasticSearch
 
             if (!_elasticClient.IndexExists(new IndexExistsRequest(defaultIndex)).Exists)
             {
-                var createIndexResult = _elasticClient.CreateIndex(defaultIndex, c => c
-                    .AddMapping<ErrorDocument>(m => m.MapFromAttributes())
-                    );
+                _elasticClient.CreateIndex(defaultIndex).VerifySuccessfulResponse();
+                _elasticClient.Map<ErrorDocument>(m => m
+                    .MapFromAttributes()
+                    .Properties(props => props
+                        .MultiField(mf => mf
+                            .Name(n => n.Message)
+                            .Fields(pprops => pprops
+                                .String(ps => ps.Name(p => p.Message.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.Message).Index(FieldIndexOption.Analyzed))
+                            )
+                        )
+                        .MultiField(mf => mf
+                            .Name(n => n.Type)
+                            .Fields(pprops => pprops
+                                .String(ps => ps.Name(p => p.Type.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.Type).Index(FieldIndexOption.Analyzed))
+                            )
+                        )
+                        .MultiField(mf => mf
+                            .Name(n => n.Source)
+                            .Fields(pprops => pprops
+                                .String(ps => ps.Name(p => p.Source.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.Source).Index(FieldIndexOption.Analyzed))
+                            )
+                        )
+                    )
+                )
+                .VerifySuccessfulResponse();
 
-                if (!createIndexResult.IsValid)
-                {
-                    throw new ApplicationException(string.Format("Could not create elasticsearch ELMAH index:{0}",
-                        createIndexResult.ConnectionStatus));
-                }
             }
         }
 

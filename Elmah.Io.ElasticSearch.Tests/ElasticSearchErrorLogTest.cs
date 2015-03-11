@@ -49,6 +49,7 @@ namespace Elmah.Io.ElasticSearch.Tests
                     mockHit2.Object
                 };
             });
+            queryResponse.Setup(x => x.IsValid).Returns(true);
 
             elasticClientMock
                 .Setup(x => x.Search(It.IsAny<Func<SearchDescriptor<ErrorDocument>, SearchDescriptor<ErrorDocument>>>()))
@@ -81,6 +82,7 @@ namespace Elmah.Io.ElasticSearch.Tests
 
             var mockResponse = new Mock<IGetResponse<ErrorDocument>>();
             mockResponse.Setup(x => x.Source).Returns(new ErrorDocument { ErrorXml = errorXml });
+            mockResponse.Setup(x => x.IsValid).Returns(true);
 
             var elasticClientMock = new Mock<IElasticClient>();
             elasticClientMock

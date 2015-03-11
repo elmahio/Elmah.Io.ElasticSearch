@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="ElasticSearchErrorLog.cs" />
     <Compile Include="ErrorDocument.cs" />
+    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
