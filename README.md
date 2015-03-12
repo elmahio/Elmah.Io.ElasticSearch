@@ -1,6 +1,12 @@
 # Elmah.Io.ElasticSearch
 Elmah.Io.ElasticSearch is a ElasticSearch storage backend for ELMAH.
 
+[![install from nuget](http://img.shields.io/nuget/v/Elmah.ElasticSearch.svg?style=flat-square)](https://www.nuget.org/packages/Elmah.ElasticSearch)[![downloads](http://img.shields.io/nuget/dt/Elmah.ElasticSearch.svg?style=flat-square)](https://www.nuget.org/packages/Elmah.ElasticSearch)    
+
+Builds:    
+[![teamcity](http://img.shields.io/teamcity/http/teamcity.codebetter.com/e/bt1123.svg?style=flat-square)](http://teamcity.codebetter.com/viewType.html?buildTypeId=bt1123)
+
+
 ## How
 Elmah.Io.ElasticSearch is configured pretty much like every other storage implementation for Elmah. To get started, add the following to your web.config:
 
