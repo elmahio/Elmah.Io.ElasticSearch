@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
 using System.Web;
 using Moq;
 using NUnit.Framework;
@@ -201,27 +199,29 @@ namespace Elmah.Io.ElasticSearch.Tests
         }
 
         [Test]
-        public void ResolveApplicationName_Specified()
+        public void ResolveConfigurationParam_Specified()
         {
             //arrange
+            const string key = "applicationName";
             const string expectedAppName = "app123";
-            var config = new Hashtable { { "applicationName", expectedAppName } };
+            var config = new Hashtable { { key, expectedAppName } };
             
             //act
-            var appName = ElasticSearchErrorLog.ResolveApplicationName(config);
+            var appName = ElasticSearchErrorLog.ResolveConfigurationParam(config, key);
 
             //assert
             Assert.AreEqual(expectedAppName, appName);
         }
 
         [Test]
-        public void ResolveApplicationName_NotSpecified()
+        public void ResolveConfigurationParam_NotSpecified()
         {
             //arrange
+            const string key = "applicationName";
             var config = new Hashtable();
             
             //act
-            var appName = ElasticSearchErrorLog.ResolveApplicationName(config);
+            var appName = ElasticSearchErrorLog.ResolveConfigurationParam(config, key);
 
             //assert
             Assert.AreEqual(string.Empty, appName);
@@ -237,6 +237,49 @@ namespace Elmah.Io.ElasticSearch.Tests
             string newString = ElasticSearchErrorLog.RemoveTrailingSlash(origString);
 
             Assert.AreEqual(expectedString, newString);
+        }
+
+        public void Constructor_SetApplicationName()
+        {
+            //arrange
+            const string key = "applicationName";
+            const string expectedAppName = "app123";
+            var config = new Hashtable { { key, expectedAppName } };
+
+            //act
+            var log = new ElasticSearchErrorLog(config);
+
+            //assert
+            Assert.AreEqual(key, log.ApplicationName);
+        }
+
+        public void Constructor_SetEnvironmentName()
+        {
+            //arrange
+            const string key = "environmentName";
+            const string expectedAppName = "app123";
+            var config = new Hashtable { { key, expectedAppName } };
+
+            //act
+            var log = new ElasticSearchErrorLog(config);
+
+            //assert
+            Assert.AreEqual(key, log.EnvironmentName);
+        }
+
+
+        public void Constructor_SetCustomerName()
+        {
+            //arrange
+            const string key = "customerName";
+            const string expectedAppName = "app123";
+            var config = new Hashtable { { key, expectedAppName } };
+
+            //act
+            var log = new ElasticSearchErrorLog(config);
+
+            //assert
+            Assert.AreEqual(key, log.CustomerName);
         }
     }
 }
