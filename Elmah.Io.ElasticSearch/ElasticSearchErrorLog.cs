@@ -10,6 +10,8 @@ namespace Elmah.Io.ElasticSearch
     public class ElasticSearchErrorLog : ErrorLog
     {
         private IElasticClient _elasticClient;
+        internal readonly string CustomerName;
+        internal readonly string EnvironmentName;
 
         public ElasticSearchErrorLog(IDictionary config)
         {
@@ -19,7 +21,10 @@ namespace Elmah.Io.ElasticSearch
             }
 
             InitElasticSearch(config);
-            ApplicationName = ResolveApplicationName(config);
+            ApplicationName = ResolveConfigurationParam(config, "applicationName");
+            EnvironmentName = ResolveConfigurationParam(config, "environmentName");
+            CustomerName = ResolveConfigurationParam(config, "customerName");
+
         }
 
         public ElasticSearchErrorLog(IElasticClient elasticClient)
@@ -42,6 +47,8 @@ namespace Elmah.Io.ElasticSearch
                 Type = error.Type,
                 User = error.User,
                 WebHostHtmlMessage = error.WebHostHtmlMessage,
+                CustomerName = CustomerName,
+                EnvironmentName = EnvironmentName
             });
             indexResponse.VerifySuccessfulResponse();
 
@@ -137,6 +144,20 @@ namespace Elmah.Io.ElasticSearch
                                 .String(ps => ps.Name(p => p.Source).Index(FieldIndexOption.Analyzed))
                             )
                         )
+                        .MultiField(mf => mf
+                            .Name(n => n.Source)
+                            .Fields(pprops => pprops
+                                .String(ps => ps.Name(p => p.CustomerName.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.CustomerName).Index(FieldIndexOption.Analyzed))
+                            )
+                        )
+                        .MultiField(mf => mf
+                            .Name(n => n.Source)
+                            .Fields(pprops => pprops
+                                .String(ps => ps.Name(p => p.EnvironmentName.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.EnvironmentName).Index(FieldIndexOption.Analyzed))
+                            )
+                        )
                     )
                 )
                 .VerifySuccessfulResponse();
@@ -195,9 +216,11 @@ namespace Elmah.Io.ElasticSearch
             return uri.GetLeftPart(UriPartial.Authority);
         }
 
-        internal static string ResolveApplicationName(IDictionary config)
+        internal static string ResolveConfigurationParam(IDictionary config, string key)
         {
-            return config.Contains("applicationName") ? config["applicationName"].ToString() : string.Empty;
+            return config.Contains(key) ? config[key].ToString() : string.Empty;
         }
+
+
     }
 }
