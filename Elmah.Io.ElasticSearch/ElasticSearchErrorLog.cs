@@ -11,6 +11,8 @@ namespace Elmah.Io.ElasticSearch
     {
         private const string MultiFieldSuffix = "raw";
         private IElasticClient _elasticClient;
+        internal string CustomerName;
+        internal string EnvironmentName;
 
         public ElasticSearchErrorLog(IDictionary config)
         {
@@ -18,14 +20,25 @@ namespace Elmah.Io.ElasticSearch
             {
                 throw new ArgumentNullException("config");
             }
-
             InitElasticSearch(config);
-            ApplicationName = ResolveApplicationName(config);
+            InitializeConfigParameters(config);
+
         }
 
-        public ElasticSearchErrorLog(IElasticClient elasticClient)
+        /// <summary>
+        /// This constructor is only used in unit tests...which is not ideal
+        /// </summary>
+        public ElasticSearchErrorLog(IElasticClient elasticClient, IDictionary config)
         {
             _elasticClient = elasticClient;
+            InitializeConfigParameters(config);
+        }
+
+        private void InitializeConfigParameters(IDictionary config)
+        {
+            ApplicationName = ResolveConfigurationParam(config, "applicationName");
+            EnvironmentName = ResolveConfigurationParam(config, "environmentName");
+            CustomerName = ResolveConfigurationParam(config, "customerName");
         }
 
         public override string Log(Error error)
@@ -43,6 +56,8 @@ namespace Elmah.Io.ElasticSearch
                 Type = error.Type,
                 User = error.User,
                 WebHostHtmlMessage = error.WebHostHtmlMessage,
+                CustomerName = CustomerName,
+                EnvironmentName = EnvironmentName
             });
             indexResponse.VerifySuccessfulResponse();
 
@@ -146,6 +161,20 @@ namespace Elmah.Io.ElasticSearch
                                 .String(ps => ps.Name(p => p.Source).Index(FieldIndexOption.Analyzed))
                             )
                         )
+                        .MultiField(mf => mf
+                            .Name(n => n.CustomerName)
+                            .Fields(pprops => pprops
+                                .String(ps => ps.Name(p => p.CustomerName.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.CustomerName).Index(FieldIndexOption.Analyzed))
+                    )
+                )
+                        .MultiField(mf => mf
+                            .Name(n => n.EnvironmentName)
+                            .Fields(pprops => pprops
+                                .String(ps => ps.Name(p => p.EnvironmentName.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.EnvironmentName).Index(FieldIndexOption.Analyzed))
+                            )
+                        )
                     )
                 )
                 .VerifySuccessfulResponse();
@@ -204,9 +233,11 @@ namespace Elmah.Io.ElasticSearch
             return uri.GetLeftPart(UriPartial.Authority);
         }
 
-        internal static string ResolveApplicationName(IDictionary config)
+        internal static string ResolveConfigurationParam(IDictionary config, string key)
         {
-            return config.Contains("applicationName") ? config["applicationName"].ToString() : string.Empty;
+            return config.Contains(key) ? config[key].ToString() : string.Empty;
         }
+
+
     }
 }

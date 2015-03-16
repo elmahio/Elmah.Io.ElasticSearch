@@ -3,6 +3,9 @@ using Nest;
 
 namespace Elmah.Io.ElasticSearch
 {
+    /// <summary>
+    /// All multi-fields have the suffix of ".raw" for the not_analyzed version
+    /// </summary>
     [ElasticType]
     public class ErrorDocument
     {
@@ -20,17 +23,17 @@ namespace Elmah.Io.ElasticSearch
         public string HostName { get; set; }
 
         /// <summary>
-        /// NOTE: this is a multi-field in ES.  The not_analyzed version is type.raw
+        /// NOTE: this is a multi-field in ES.
         /// </summary>
         public string Type { get; set; }
 
         /// <summary>
-        /// NOTE: this is a multi-field in ES.  The not_analyzed version is source.raw
+        /// NOTE: this is a multi-field in ES.
         /// </summary>
         public string Source { get; set; }
 
         /// <summary>
-        /// NOTE: this is a multi-field in ES.  The not_analyzed version is message.raw
+        /// NOTE: this is a multi-field in ES.
         /// </summary>
         public string Message { get; set; }
 
@@ -43,5 +46,15 @@ namespace Elmah.Io.ElasticSearch
         public int StatusCode { get; set; }
 
         public string WebHostHtmlMessage { get; set; }
+
+        /// <summary>
+        /// NOTE: this is a multi-field in ES.
+        /// </summary>
+        public string EnvironmentName { get; set; }
+
+        /// <summary>
+        /// NOTE: this is a multi-field in ES.
+        /// </summary>
+        public string CustomerName { get; set; }
     }
 }

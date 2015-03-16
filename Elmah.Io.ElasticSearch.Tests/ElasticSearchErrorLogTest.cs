@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
 using System.Web;
 using Moq;
 using NUnit.Framework;
@@ -11,8 +9,11 @@ using Ploeh.AutoFixture;
 
 namespace Elmah.Io.ElasticSearch.Tests
 {
+    [TestFixture]
     public class ElasticSearchErrorLogTest
     {
+        private readonly Mock<IElasticClient> _elasticClientMock = new Mock<IElasticClient>();
+
         [Test]
         public void CanGetErrors()
         {
@@ -29,7 +30,7 @@ namespace Elmah.Io.ElasticSearch.Tests
             var errorDoc1 = new ErrorDocument {ErrorXml = errorXml1};
             var errorDoc2 = new ErrorDocument {ErrorXml = errorXml2};
 
-            var elasticClientMock = new Mock<IElasticClient>();
+            
             var queryResponse = new Mock<ISearchResponse<ErrorDocument>>();
 
             queryResponse.Setup(x => x.Total).Returns(2);
@@ -51,13 +52,13 @@ namespace Elmah.Io.ElasticSearch.Tests
             });
             queryResponse.Setup(x => x.IsValid).Returns(true);
 
-            elasticClientMock
+            _elasticClientMock
                 .Setup(x => x.Search(It.IsAny<Func<SearchDescriptor<ErrorDocument>, SearchDescriptor<ErrorDocument>>>()))
                 .Returns(queryResponse.Object);
 
-            var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
+            var errorLog = new ElasticSearchErrorLog(_elasticClientMock.Object, new Hashtable())
             {
-                ApplicationName = applicationName,
+                ApplicationName = applicationName
             };
 
             // Act
@@ -89,7 +90,7 @@ namespace Elmah.Io.ElasticSearch.Tests
                 .Setup(x => x.Get(It.IsAny<Func<GetDescriptor<ErrorDocument>, GetDescriptor<ErrorDocument>>>()))
                 .Returns(mockResponse.Object);
 
-            var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
+            var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object, new Hashtable())
             {
                 ApplicationName = applicationName,
             };
@@ -122,7 +123,7 @@ namespace Elmah.Io.ElasticSearch.Tests
                 .Setup(x => x.Index(It.IsAny<ErrorDocument>(), It.IsAny<Func<IndexDescriptor<ErrorDocument>, IndexDescriptor<ErrorDocument>>>()))
                 .Returns(responseMock.Object);
 
-            var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
+            var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object, new Hashtable())
                 {
                     ApplicationName = applicationName,
                 };
@@ -201,27 +202,29 @@ namespace Elmah.Io.ElasticSearch.Tests
         }
 
         [Test]
-        public void ResolveApplicationName_Specified()
+        public void ResolveConfigurationParam_Specified()
         {
             //arrange
+            const string key = "applicationName";
             const string expectedAppName = "app123";
-            var config = new Hashtable { { "applicationName", expectedAppName } };
+            var config = new Hashtable { { key, expectedAppName } };
             
             //act
-            var appName = ElasticSearchErrorLog.ResolveApplicationName(config);
+            var appName = ElasticSearchErrorLog.ResolveConfigurationParam(config, key);
 
             //assert
             Assert.AreEqual(expectedAppName, appName);
         }
 
         [Test]
-        public void ResolveApplicationName_NotSpecified()
+        public void ResolveConfigurationParam_NotSpecified()
         {
             //arrange
+            const string key = "applicationName";
             var config = new Hashtable();
             
             //act
-            var appName = ElasticSearchErrorLog.ResolveApplicationName(config);
+            var appName = ElasticSearchErrorLog.ResolveConfigurationParam(config, key);
 
             //assert
             Assert.AreEqual(string.Empty, appName);
@@ -237,6 +240,60 @@ namespace Elmah.Io.ElasticSearch.Tests
             string newString = ElasticSearchErrorLog.RemoveTrailingSlash(origString);
 
             Assert.AreEqual(expectedString, newString);
+        }
+
+        [Test]
+        public void Constructor_SetApplicationName()
+        {
+            //arrange
+            const string key = "applicationName";
+            const string value = "app123";
+            var config = new Hashtable
+            {
+                { key, value }
+            };
+
+            //act
+            var log = new ElasticSearchErrorLog(_elasticClientMock.Object, config);
+
+            //assert
+            Assert.AreEqual(value, log.ApplicationName);
+        }
+
+        [Test]
+        public void Constructor_SetEnvironmentName()
+        {
+            //arrange
+            const string key = "environmentName";
+            const string value = "app123";
+            var config = new Hashtable
+            {
+                { key, value }
+            };
+
+            //act
+            var log = new ElasticSearchErrorLog(_elasticClientMock.Object, config);
+
+            //assert
+            Assert.AreEqual(value, log.EnvironmentName);
+        }
+
+        [Test]
+        public void Constructor_SetCustomerName()
+        {
+            //arrange
+            const string key = "customerName";
+            const string value = "app123";
+            var config = new Hashtable
+            {
+                { key, value }
+            };
+
+            //act
+            var log = new ElasticSearchErrorLog(_elasticClientMock.Object, config);
+
+            //assert
+            Assert.AreEqual(value, log.CustomerName);
         }
     }
 }
