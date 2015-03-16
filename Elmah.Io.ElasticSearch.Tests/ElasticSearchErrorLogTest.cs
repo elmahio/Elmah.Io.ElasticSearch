@@ -12,7 +12,7 @@ namespace Elmah.Io.ElasticSearch.Tests
     [TestFixture]
     public class ElasticSearchErrorLogTest
     {
-        private Mock<IElasticClient> _elasticClientMock;
+        private readonly Mock<IElasticClient> _elasticClientMock = new Mock<IElasticClient>();
 
         [Test]
         public void CanGetErrors()
@@ -31,7 +31,6 @@ namespace Elmah.Io.ElasticSearch.Tests
             var errorDoc2 = new ErrorDocument {ErrorXml = errorXml2};
 
             
-            _elasticClientMock = new Mock<IElasticClient>();
             var queryResponse = new Mock<ISearchResponse<ErrorDocument>>();
 
             queryResponse.Setup(x => x.Total).Returns(2);
