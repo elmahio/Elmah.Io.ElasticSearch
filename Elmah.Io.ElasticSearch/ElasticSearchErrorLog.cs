@@ -9,9 +9,10 @@ namespace Elmah.Io.ElasticSearch
 {
     public class ElasticSearchErrorLog : ErrorLog
     {
+        private const string MultiFieldSuffix = "raw";
         private IElasticClient _elasticClient;
-        internal readonly string CustomerName;
-        internal readonly string EnvironmentName;
+        internal string CustomerName;
+        internal string EnvironmentName;
 
         public ElasticSearchErrorLog(IDictionary config)
         {
@@ -19,17 +20,25 @@ namespace Elmah.Io.ElasticSearch
             {
                 throw new ArgumentNullException("config");
             }
-
             InitElasticSearch(config);
-            ApplicationName = ResolveConfigurationParam(config, "applicationName");
-            EnvironmentName = ResolveConfigurationParam(config, "environmentName");
-            CustomerName = ResolveConfigurationParam(config, "customerName");
+            InitializeConfigParameters(config);
 
         }
 
-        public ElasticSearchErrorLog(IElasticClient elasticClient)
+        /// <summary>
+        /// This constructor is only used in unit tests...which is not ideal
+        /// </summary>
+        public ElasticSearchErrorLog(IElasticClient elasticClient, IDictionary config)
         {
             _elasticClient = elasticClient;
+            InitializeConfigParameters(config);
+        }
+
+        private void InitializeConfigParameters(IDictionary config)
+        {
+            ApplicationName = ResolveConfigurationParam(config, "applicationName");
+            EnvironmentName = ResolveConfigurationParam(config, "environmentName");
+            CustomerName = ResolveConfigurationParam(config, "customerName");
         }
 
         public override string Log(Error error)
@@ -68,7 +77,8 @@ namespace Elmah.Io.ElasticSearch
         public override int GetErrors(int pageIndex, int pageSize, IList errorEntryList)
         {
             var result = _elasticClient.Search<ErrorDocument>(x => x
-                .Filter(f => f.Term(t => t.ApplicationName, ApplicationName))
+                .Filter(f => f
+                    .Term("applicationName.raw", ApplicationName))
                 .Skip(pageSize * pageIndex)
                 .Take(pageSize)
                 .Sort(s => s.OnField(e => e.Time).Descending())
@@ -124,37 +134,44 @@ namespace Elmah.Io.ElasticSearch
                     .MapFromAttributes()
                     .Properties(props => props
                         .MultiField(mf => mf
+                            .Name(n => n.ApplicationName)
+                            .Fields(pprops => pprops
+                                .String(ps => ps.Name(p => p.ApplicationName.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.ApplicationName).Index(FieldIndexOption.Analyzed))
+                            )
+                        )
+                        .MultiField(mf => mf
                             .Name(n => n.Message)
                             .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.Message.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.Message.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
                                 .String(ps => ps.Name(p => p.Message).Index(FieldIndexOption.Analyzed))
                             )
                         )
                         .MultiField(mf => mf
                             .Name(n => n.Type)
                             .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.Type.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.Type.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
                                 .String(ps => ps.Name(p => p.Type).Index(FieldIndexOption.Analyzed))
                             )
                         )
                         .MultiField(mf => mf
                             .Name(n => n.Source)
                             .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.Source.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.Source.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
                                 .String(ps => ps.Name(p => p.Source).Index(FieldIndexOption.Analyzed))
                             )
                         )
                         .MultiField(mf => mf
                             .Name(n => n.CustomerName)
                             .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.CustomerName.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.CustomerName.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
                                 .String(ps => ps.Name(p => p.CustomerName).Index(FieldIndexOption.Analyzed))
-                            )
-                        )
+                    )
+                )
                         .MultiField(mf => mf
                             .Name(n => n.EnvironmentName)
                             .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.EnvironmentName.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
+                                .String(ps => ps.Name(p => p.EnvironmentName.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
                                 .String(ps => ps.Name(p => p.EnvironmentName).Index(FieldIndexOption.Analyzed))
                             )
                         )

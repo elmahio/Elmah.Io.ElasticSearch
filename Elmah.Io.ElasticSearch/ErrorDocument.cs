@@ -14,7 +14,9 @@ namespace Elmah.Io.ElasticSearch
         [ElasticProperty(Index = FieldIndexOption.No)]
         public string ErrorXml { get; set; }
 
-        [ElasticProperty(Index = FieldIndexOption.NotAnalyzed)]
+        /// <summary>
+        /// NOTE: this is a multi-field in ES.  The not_analyzed version is applicationName.raw
+        /// </summary>
         public string ApplicationName { get; set; }
 
         [ElasticProperty(Index = FieldIndexOption.NotAnalyzed)]
