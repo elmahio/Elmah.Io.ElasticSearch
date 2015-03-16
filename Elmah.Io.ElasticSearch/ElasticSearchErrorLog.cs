@@ -145,14 +145,14 @@ namespace Elmah.Io.ElasticSearch
                             )
                         )
                         .MultiField(mf => mf
-                            .Name(n => n.Source)
+                            .Name(n => n.CustomerName)
                             .Fields(pprops => pprops
                                 .String(ps => ps.Name(p => p.CustomerName.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
                                 .String(ps => ps.Name(p => p.CustomerName).Index(FieldIndexOption.Analyzed))
                             )
                         )
                         .MultiField(mf => mf
-                            .Name(n => n.Source)
+                            .Name(n => n.EnvironmentName)
                             .Fields(pprops => pprops
                                 .String(ps => ps.Name(p => p.EnvironmentName.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
                                 .String(ps => ps.Name(p => p.EnvironmentName).Index(FieldIndexOption.Analyzed))
