@@ -3,6 +3,9 @@ using Nest;
 
 namespace Elmah.Io.ElasticSearch
 {
+    /// <summary>
+    /// All multi-fields have the suffix of ".raw" for the not_analyzed version
+    /// </summary>
     [ElasticType(Name = "errorLog")]
     public class ErrorDocument
     {
@@ -33,5 +36,9 @@ namespace Elmah.Io.ElasticSearch
         public int StatusCode { get; set; }
 
         public string WebHostHtmlMessage { get; set; }
+
+        public string EnvironmentName { get; set; }
+
+        public string CustomerName { get; set; }
     }
 }
