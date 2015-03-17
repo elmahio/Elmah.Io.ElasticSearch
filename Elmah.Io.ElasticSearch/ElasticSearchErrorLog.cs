@@ -107,15 +107,16 @@ namespace Elmah.Io.ElasticSearch
             config = (IDictionary)((ICloneable)config).Clone();
 
             //
-            // Get the type specification of the service provider.
+            // Remove the type specification of the service provider.
             //
-            var typeSpec = (string) config["type"] ?? string.Empty;
-
-            if (typeSpec.Length == 0)
+            const string typeKey = "type";
+            var typeString = ElasticSearchErrorLog.ResolveConfigurationParam(config, typeKey);
+            if (string.IsNullOrEmpty(typeString))
+            {
                 return null;
+            }
 
-            config.Remove("type");
-
+            config.Remove(typeKey);
             return config;
         }
 
@@ -211,8 +212,9 @@ namespace Elmah.Io.ElasticSearch
             {
                 throw new ArgumentNullException("config");
             }
-            _elasticClient = ElasticClientSingleton.Instance.Client;
             InitializeConfigParameters(config);
+
+            _elasticClient = ElasticClientSingleton.Instance.Client;
         }
 
         /// <summary>
@@ -285,12 +287,9 @@ namespace Elmah.Io.ElasticSearch
             return (int)result.Total;
         }
 
-
         internal static string ResolveConfigurationParam(IDictionary config, string key)
         {
             return config.Contains(key) ? config[key].ToString() : string.Empty;
         }
-
-
     }
 }
