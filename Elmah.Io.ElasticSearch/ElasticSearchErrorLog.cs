@@ -126,56 +126,12 @@ namespace Elmah.Io.ElasticSearch
             var conSettings = new ConnectionSettings(new Uri(conString), defaultIndex);
             _elasticClient = new ElasticClient(conSettings);
 
-
+            return;
             if (!_elasticClient.IndexExists(new IndexExistsRequest(defaultIndex)).Exists)
             {
                 _elasticClient.CreateIndex(defaultIndex).VerifySuccessfulResponse();
                 _elasticClient.Map<ErrorDocument>(m => m
-                    .MapFromAttributes()
-                    .Properties(props => props
-                        .MultiField(mf => mf
-                            .Name(n => n.ApplicationName)
-                            .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.ApplicationName.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
-                                .String(ps => ps.Name(p => p.ApplicationName).Index(FieldIndexOption.Analyzed))
-                            )
-                        )
-                        .MultiField(mf => mf
-                            .Name(n => n.Message)
-                            .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.Message.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
-                                .String(ps => ps.Name(p => p.Message).Index(FieldIndexOption.Analyzed))
-                            )
-                        )
-                        .MultiField(mf => mf
-                            .Name(n => n.Type)
-                            .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.Type.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
-                                .String(ps => ps.Name(p => p.Type).Index(FieldIndexOption.Analyzed))
-                            )
-                        )
-                        .MultiField(mf => mf
-                            .Name(n => n.Source)
-                            .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.Source.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
-                                .String(ps => ps.Name(p => p.Source).Index(FieldIndexOption.Analyzed))
-                            )
-                        )
-                        .MultiField(mf => mf
-                            .Name(n => n.CustomerName)
-                            .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.CustomerName.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
-                                .String(ps => ps.Name(p => p.CustomerName).Index(FieldIndexOption.Analyzed))
-                    )
-                )
-                        .MultiField(mf => mf
-                            .Name(n => n.EnvironmentName)
-                            .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.EnvironmentName.Suffix(MultiFieldSuffix)).Index(FieldIndexOption.NotAnalyzed))
-                                .String(ps => ps.Name(p => p.EnvironmentName).Index(FieldIndexOption.Analyzed))
-                            )
-                        )
-                    )
+                    .MapFromAttributes()                    
                 )
                 .VerifySuccessfulResponse();
 

@@ -16,9 +16,7 @@ namespace Elmah.Io.ElasticSearch
 
         public string ApplicationName { get; set; }
 
-        [ElasticProperty(Index = FieldIndexOption.NotAnalyzed)]
         public string HostName { get; set; }
-
 
         public string Type { get; set; }
 
