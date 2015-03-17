@@ -166,7 +166,7 @@ namespace Elmah.Io.ElasticSearch.Tests
             };
 
             //act 
-            var defaultIndex = ElasticSearchErrorLog.GetDefaultIndex(dict, connectionString);
+            var defaultIndex = ElasticClientSingleton.GetDefaultIndex(dict, connectionString);
 
             //assert
             Assert.AreEqual(expectedDefaultIndex.ToLower(), defaultIndex);
@@ -181,7 +181,7 @@ namespace Elmah.Io.ElasticSearch.Tests
         public void GetDefaultIndexFromConnectionString(string connectionString, string expectedResult)
         {
             //act 
-            var defaultIndex = ElasticSearchErrorLog.GetDefaultIndexFromConnectionString(connectionString);
+            var defaultIndex = ElasticClientSingleton.GetDefaultIndexFromConnectionString(connectionString);
 
             //assert
             Assert.AreEqual(expectedResult, defaultIndex);
@@ -195,7 +195,7 @@ namespace Elmah.Io.ElasticSearch.Tests
         public void RemoveDefaultIndexFromConnectionString(string connectionString, string expectedResult)
         {
             //act 
-            var connectionStringOnly = ElasticSearchErrorLog.RemoveDefaultIndexFromConnectionString(connectionString);
+            var connectionStringOnly = ElasticClientSingleton.RemoveDefaultIndexFromConnectionString(connectionString);
 
             //assert
             Assert.AreEqual(expectedResult, connectionStringOnly);
@@ -237,7 +237,7 @@ namespace Elmah.Io.ElasticSearch.Tests
         [TestCase("http://localhost:9200/indexHere", "http://localhost:9200/indexHere")]
         public void RemoveTralingSlash(string origString, string expectedString)
         {
-            string newString = ElasticSearchErrorLog.RemoveTrailingSlash(origString);
+            string newString = ElasticClientSingleton.RemoveTrailingSlash(origString);
 
             Assert.AreEqual(expectedString, newString);
         }
