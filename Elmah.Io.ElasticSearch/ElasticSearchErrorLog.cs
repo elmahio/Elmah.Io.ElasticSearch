@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Configuration;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Nest;
 
@@ -14,6 +15,7 @@ namespace Elmah.Io.ElasticSearch
         internal string CustomerName;
         internal string EnvironmentName;
 
+        // ReSharper disable once UnusedMember.Global
         public ElasticSearchErrorLog(IDictionary config)
         {
             if (config == null)
@@ -126,16 +128,41 @@ namespace Elmah.Io.ElasticSearch
             var conSettings = new ConnectionSettings(new Uri(conString), defaultIndex);
             _elasticClient = new ElasticClient(conSettings);
 
-            return;
             if (!_elasticClient.IndexExists(new IndexExistsRequest(defaultIndex)).Exists)
             {
                 _elasticClient.CreateIndex(defaultIndex).VerifySuccessfulResponse();
                 _elasticClient.Map<ErrorDocument>(m => m
-                    .MapFromAttributes()                    
+                    .MapFromAttributes()
+                    .Properties(CreateMultiFieldsForAllStrings)
                 )
                 .VerifySuccessfulResponse();
 
+            }        
+        }
+
+
+        private static PropertiesDescriptor<ErrorDocument> CreateMultiFieldsForAllStrings(PropertiesDescriptor<ErrorDocument> props)
+        {
+            var members = typeof (ErrorDocument)
+                .GetProperties()
+                .Where(x=>x.PropertyType == typeof(string) 
+                    && x.Name != "Id" //id field is obviously excluded
+                    && x.Name != "ErrorXml"//errorXML field is so long it has no indexer on it at all
+                    );
+            foreach(var m in members)
+            {
+                var name = m.Name;
+                name = Char.ToLowerInvariant(name[0]) + name.Substring(1);//lowercase the first character
+                props
+                    .MultiField(mf => mf
+                        .Name(name)
+                        .Fields(pprops => pprops
+                            .String(ps => ps.Name(name).Index(FieldIndexOption.Analyzed))
+                            .String(ps => ps.Name(MultiFieldSuffix).Index(FieldIndexOption.NotAnalyzed))                            
+                        )
+                    );
             }
+            return props;
         }
 
         /// <summary>
@@ -158,10 +185,10 @@ namespace Elmah.Io.ElasticSearch
 
         internal static string GetDefaultIndexFromConnectionString(string connectionString)
         {
-            Uri myUri = new Uri(connectionString);
+            var myUri = new Uri(connectionString);
 
-            string[] pathSegments = myUri.Segments;
-            string ourIndex = string.Empty;
+            var pathSegments = myUri.Segments;
+            var ourIndex = string.Empty;
 
             if (pathSegments.Length > 1)
             {
