@@ -58,6 +58,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ElasticClientSingleton.cs" />
     <Compile Include="ElasticSearchErrorLog.cs" />
     <Compile Include="ErrorDocument.cs" />
     <Compile Include="ExtensionMethods.cs" />
