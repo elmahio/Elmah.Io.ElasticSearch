@@ -6,7 +6,7 @@ namespace Elmah.Io.ElasticSearch
     /// <summary>
     /// All multi-fields have the suffix of ".raw" for the not_analyzed version
     /// </summary>
-    [ElasticType(Name = "errorLog")]
+    [ElasticType(Name = "error")]
     public class ErrorDocument
     {
         public string Id { get; set; }
