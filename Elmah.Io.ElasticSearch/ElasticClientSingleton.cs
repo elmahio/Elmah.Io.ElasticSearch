@@ -6,6 +6,11 @@ using Nest;
 
 namespace Elmah.Io.ElasticSearch
 {
+    /// <summary>
+    /// The IElasticClient is intented to be a singleton.  If we were using
+    /// IOC we could inject it as such, but because the Elmah base code is
+    /// so old it's not really supported.  Hence this class to manage it for us.
+    /// </summary>
     public class ElasticClientSingleton : IDisposable
     {
         private const string MultiFieldSuffix = "raw";
@@ -21,8 +26,8 @@ namespace Elmah.Io.ElasticSearch
             var conString = RemoveDefaultIndexFromConnectionString(url);
             var conSettings = new ConnectionSettings(new Uri(conString), defaultIndex);
 
-            _instance.Client = new ElasticClient(conSettings);
-            if (!_instance.Client.IndexExists(new IndexExistsRequest(defaultIndex)).Exists)
+            Client = new ElasticClient(conSettings);
+            if (!Client.IndexExists(new IndexExistsRequest(defaultIndex)).Exists)
             {
                 InitIndex(defaultIndex);
             }
@@ -33,10 +38,10 @@ namespace Elmah.Io.ElasticSearch
             get { return _instance ?? (_instance = new ElasticClientSingleton()); }
         }
 
-        private static void InitIndex(string defaultIndex)
+        private void InitIndex(string defaultIndex)
         {
-            _instance.Client.CreateIndex(defaultIndex).VerifySuccessfulResponse();
-            _instance.Client.Map<ErrorDocument>(m => m
+            Client.CreateIndex(defaultIndex).VerifySuccessfulResponse();
+            Client.Map<ErrorDocument>(m => m
                 .MapFromAttributes()
                 .Properties(CreateMultiFieldsForAllStrings)
                 )
