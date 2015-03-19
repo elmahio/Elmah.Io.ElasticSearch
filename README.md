@@ -1,5 +1,5 @@
 # Elmah.Io.ElasticSearch
-Elmah.Io.ElasticSearch is an Elastic (formally ElasticSearch) storage backend for ELMAH.
+Elmah.Io.ElasticSearch is an Elasticsearch storage backend for ELMAH.
 
 [![install from nuget](http://img.shields.io/nuget/v/Elmah.ElasticSearch.svg?style=flat-square)](https://www.nuget.org/packages/Elmah.ElasticSearch)[![downloads](http://img.shields.io/nuget/dt/Elmah.ElasticSearch.svg?style=flat-square)](https://www.nuget.org/packages/Elmah.ElasticSearch)    
 
@@ -21,12 +21,12 @@ Elmah.Io.ElasticSearch is configured pretty much like every other storage implem
         connectionStringName="ElmahIoElasticSearch" />
     </elmah>
 
-Replace the connection string URL with your ElasticSearch URL and add the elmah config section as explained on the [offical ELMAH site](https://code.google.com/p/elmah/).
+Replace the connection string URL with your Elasticsearch URL and add the elmah config section as explained on the [offical ELMAH site](https://code.google.com/p/elmah/).
 
 ##Configuration
 
 
-The Elastic index name can be specified one of two ways, let's say you want the index name to be elmahCurrent:
+The Elasticsearch index name can be specified one of two ways, let's say you want the index name to be elmahCurrent:
 
 1: Put it in the connection string *(preferred)*
 ```
@@ -46,7 +46,7 @@ The Elastic index name can be specified one of two ways, let's say you want the 
     defaultIndex="elmahCurrent" />
 ```
 
-You can optionally specify the following fields that will be written to Elastic:
+You can optionally specify the following fields that will be written to search:
 
 1. Application Name
 2. Environment Name
