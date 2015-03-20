@@ -6,7 +6,7 @@ Elmah.Io.ElasticSearch is an Elasticsearch storage backend for ELMAH.
 Builds:    
 [![teamcity](http://img.shields.io/teamcity/http/teamcity.codebetter.com/e/bt1123.svg?style=flat-square)](http://teamcity.codebetter.com/viewType.html?buildTypeId=bt1123)
 
-#Release 1.1 is live! [Release Notes](https://github.com/elmahio/Elmah.Io.ElasticSearch/releases/tags/1.1)
+#Release 1.1 is live! [Release Notes](https://github.com/elmahio/Elmah.Io.ElasticSearch/releases/tag/1.1)
 
 
 ## How
