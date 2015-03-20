@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Linq;
 using System.Web;
 using Moq;
 using NUnit.Framework;
@@ -11,8 +8,11 @@ using Ploeh.AutoFixture;
 
 namespace Elmah.Io.ElasticSearch.Tests
 {
+    [TestFixture]
     public class ElasticSearchErrorLogTest
     {
+        private readonly Mock<IElasticClient> _elasticClientMock = new Mock<IElasticClient>();
+
         [Test]
         public void CanGetErrors()
         {
@@ -29,7 +29,7 @@ namespace Elmah.Io.ElasticSearch.Tests
             var errorDoc1 = new ErrorDocument {ErrorXml = errorXml1};
             var errorDoc2 = new ErrorDocument {ErrorXml = errorXml2};
 
-            var elasticClientMock = new Mock<IElasticClient>();
+            
             var queryResponse = new Mock<ISearchResponse<ErrorDocument>>();
 
             queryResponse.Setup(x => x.Total).Returns(2);
@@ -51,13 +51,13 @@ namespace Elmah.Io.ElasticSearch.Tests
             });
             queryResponse.Setup(x => x.IsValid).Returns(true);
 
-            elasticClientMock
+            _elasticClientMock
                 .Setup(x => x.Search(It.IsAny<Func<SearchDescriptor<ErrorDocument>, SearchDescriptor<ErrorDocument>>>()))
                 .Returns(queryResponse.Object);
 
-            var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
+            var errorLog = new ElasticSearchErrorLog(_elasticClientMock.Object, new Hashtable())
             {
-                ApplicationName = applicationName,
+                ApplicationName = applicationName
             };
 
             // Act
@@ -89,7 +89,7 @@ namespace Elmah.Io.ElasticSearch.Tests
                 .Setup(x => x.Get(It.IsAny<Func<GetDescriptor<ErrorDocument>, GetDescriptor<ErrorDocument>>>()))
                 .Returns(mockResponse.Object);
 
-            var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
+            var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object, new Hashtable())
             {
                 ApplicationName = applicationName,
             };
@@ -122,7 +122,7 @@ namespace Elmah.Io.ElasticSearch.Tests
                 .Setup(x => x.Index(It.IsAny<ErrorDocument>(), It.IsAny<Func<IndexDescriptor<ErrorDocument>, IndexDescriptor<ErrorDocument>>>()))
                 .Returns(responseMock.Object);
 
-            var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object)
+            var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object, new Hashtable())
                 {
                     ApplicationName = applicationName,
                 };
@@ -150,93 +150,88 @@ namespace Elmah.Io.ElasticSearch.Tests
                         ), It.IsAny<Func<IndexDescriptor<ErrorDocument>, IndexDescriptor<ErrorDocument>>>()));
         }
 
-        /// <summary>
-        /// test getting the default from the elmah config instead of from the connection string
-        /// </summary>
-        [Test]
-        public void GetDefaultIndex_FromElmahConfig()
-        {
-            //arrange
-            const string connectionString = "http://localhost:9200/";
-            const string expectedDefaultIndex = "defaultFromConfig";
-            var dict = new Dictionary<string, string>
-            {
-                {"defaultIndex", expectedDefaultIndex}
-            };
-
-            //act 
-            var defaultIndex = ElasticSearchErrorLog.GetDefaultIndex(dict, connectionString);
-
-            //assert
-            Assert.AreEqual(expectedDefaultIndex.ToLower(), defaultIndex);
-        }
-
-        [TestCase("http://localhost:9200", "")]
-        [TestCase("http://localhost:9200/", "")]
-        [TestCase("http://localhost:9200/indexHere", "indexHere")]
-        [TestCase("http://localhost:9200/indexHere/", "indexHere")]
-        [TestCase("http://localhost:9201/indexHere", "indexHere")]
-        [TestCase("http://localhost/indexHere", "indexHere")]
-        public void GetDefaultIndexFromConnectionString(string connectionString, string expectedResult)
-        {
-            //act 
-            var defaultIndex = ElasticSearchErrorLog.GetDefaultIndexFromConnectionString(connectionString);
-
-            //assert
-            Assert.AreEqual(expectedResult, defaultIndex);
-        }
-
-        [TestCase("http://localhost:9200/", "http://localhost:9200")]
-        [TestCase("http://localhost:9200", "http://localhost:9200")]
-        [TestCase("http://localhost:9200/defaultIndex123", "http://localhost:9200")]
-        [TestCase("http://localhost:9201/defaultIndex123", "http://localhost:9201")]
-        [TestCase("http://localhost/defaultIndex123", "http://localhost")]
-        public void RemoveDefaultIndexFromConnectionString(string connectionString, string expectedResult)
-        {
-            //act 
-            var connectionStringOnly = ElasticSearchErrorLog.RemoveDefaultIndexFromConnectionString(connectionString);
-
-            //assert
-            Assert.AreEqual(expectedResult, connectionStringOnly);
-        }
 
         [Test]
-        public void ResolveApplicationName_Specified()
+        public void ResolveConfigurationParam_Specified()
         {
             //arrange
+            const string key = "applicationName";
             const string expectedAppName = "app123";
-            var config = new Hashtable { { "applicationName", expectedAppName } };
+            var config = new Hashtable { { key, expectedAppName } };
             
             //act
-            var appName = ElasticSearchErrorLog.ResolveApplicationName(config);
+            var appName = ElasticSearchErrorLog.ResolveConfigurationParam(config, key);
 
             //assert
             Assert.AreEqual(expectedAppName, appName);
         }
 
         [Test]
-        public void ResolveApplicationName_NotSpecified()
+        public void ResolveConfigurationParam_NotSpecified()
         {
             //arrange
+            const string key = "applicationName";
             var config = new Hashtable();
             
             //act
-            var appName = ElasticSearchErrorLog.ResolveApplicationName(config);
+            var appName = ElasticSearchErrorLog.ResolveConfigurationParam(config, key);
 
             //assert
             Assert.AreEqual(string.Empty, appName);
         }
 
-        [TestCase("", "")]
-        [TestCase("http://localhost:9200", "http://localhost:9200")]
-        [TestCase("http://localhost:9200/", "http://localhost:9200")]
-        [TestCase("http://localhost:9200/indexHere/", "http://localhost:9200/indexHere")]
-        [TestCase("http://localhost:9200/indexHere", "http://localhost:9200/indexHere")]
-        public void RemoveTralingSlash(string origString, string expectedString)
+        [Test]
+        public void Constructor_SetApplicationName()
         {
-            string newString = ElasticSearchErrorLog.RemoveTrailingSlash(origString);
+            //arrange
+            const string key = "applicationName";
+            const string value = "app123";
+            var config = new Hashtable
+            {
+                { key, value }
+            };
 
-            Assert.AreEqual(expectedString, newString);
+            //act
+            var log = new ElasticSearchErrorLog(_elasticClientMock.Object, config);
+
+            //assert
+            Assert.AreEqual(value, log.ApplicationName);
+        }
+
+        [Test]
+        public void Constructor_SetEnvironmentName()
+        {
+            //arrange
+            const string key = "environmentName";
+            const string value = "app123";
+            var config = new Hashtable
+            {
+                { key, value }
+            };
+
+            //act
+            var log = new ElasticSearchErrorLog(_elasticClientMock.Object, config);
+
+            //assert
+            Assert.AreEqual(value, log.EnvironmentName);
+        }
+
+        [Test]
+        public void Constructor_SetCustomerName()
+        {
+            //arrange
+            const string key = "customerName";
+            const string value = "app123";
+            var config = new Hashtable
+            {
+                { key, value }
+            };
+
+            //act
+            var log = new ElasticSearchErrorLog(_elasticClientMock.Object, config);
+
+            //assert
+            Assert.AreEqual(value, log.CustomerName);
         }
     }
 }

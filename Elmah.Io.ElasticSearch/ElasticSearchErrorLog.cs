@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Configuration;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Nest;
 
@@ -9,22 +10,39 @@ namespace Elmah.Io.ElasticSearch
 {
     public class ElasticSearchErrorLog : ErrorLog
     {
-        private IElasticClient _elasticClient;
+        internal string CustomerName;
+        internal string EnvironmentName;
 
+        private static IElasticClient _elasticClient;
+        
+        // ReSharper disable once UnusedMember.Global
         public ElasticSearchErrorLog(IDictionary config)
+        {
+            InitializeConfigParameters(config);
+
+            _elasticClient = ElasticClientSingleton.Instance.Client;
+        }
+
+        /// <summary>
+        /// This constructor is only used in unit tests...which is not ideal
+        /// </summary>
+        public ElasticSearchErrorLog(IElasticClient elasticClient, IDictionary config)
+        {
+            InitializeConfigParameters(config);
+
+            _elasticClient = elasticClient;
+        }
+
+        private void InitializeConfigParameters(IDictionary config)
         {
             if (config == null)
             {
                 throw new ArgumentNullException("config");
             }
 
-            InitElasticSearch(config);
-            ApplicationName = ResolveApplicationName(config);
-        }
-
-        public ElasticSearchErrorLog(IElasticClient elasticClient)
-        {
-            _elasticClient = elasticClient;
+            ApplicationName = ResolveConfigurationParam(config, "applicationName");
+            EnvironmentName = ResolveConfigurationParam(config, "environmentName");
+            CustomerName = ResolveConfigurationParam(config, "customerName");
         }
 
         public override string Log(Error error)
@@ -42,6 +60,8 @@ namespace Elmah.Io.ElasticSearch
                 Type = error.Type,
                 User = error.User,
                 WebHostHtmlMessage = error.WebHostHtmlMessage,
+                CustomerName = CustomerName,
+                EnvironmentName = EnvironmentName
             });
             indexResponse.VerifySuccessfulResponse();
 
@@ -61,7 +81,8 @@ namespace Elmah.Io.ElasticSearch
         public override int GetErrors(int pageIndex, int pageSize, IList errorEntryList)
         {
             var result = _elasticClient.Search<ErrorDocument>(x => x
-                .Filter(f => f.Term(t => t.ApplicationName, ApplicationName))
+                .Filter(f => f
+                    .Term("applicationName.raw", ApplicationName))
                 .Skip(pageSize * pageIndex)
                 .Take(pageSize)
                 .Sort(s => s.OnField(e => e.Time).Descending())
@@ -78,126 +99,9 @@ namespace Elmah.Io.ElasticSearch
             return (int)result.Total;
         }
 
-        private static string LoadConnectionString(IDictionary config)
+        internal static string ResolveConfigurationParam(IDictionary config, string key)
         {
-            // From ELMAH source
-            // First look for a connection string name that can be 
-            // subsequently indexed into the <connectionStrings> section of 
-            // the configuration to get the actual connection string.
-
-            var connectionStringName = (string)config["connectionStringName"];
-
-            if (!string.IsNullOrEmpty(connectionStringName))
-            {
-                var settings = ConfigurationManager.ConnectionStrings[connectionStringName];
-
-                if (settings != null)
-                    return settings.ConnectionString;
-
-                throw new ApplicationException(string.Format("Could not find a ConnectionString with the name '{0}'.", connectionStringName));
-            }
-
-            throw new ApplicationException("You must specifiy the 'connectionStringName' attribute on the <errorLog /> element.");
-        }
-
-        private void InitElasticSearch(IDictionary config)
-        {
-            var url = LoadConnectionString(config);
-
-            var defaultIndex = GetDefaultIndex(config, url);
-            var conString = RemoveDefaultIndexFromConnectionString(url);
-            var conSettings = new ConnectionSettings(new Uri(conString), defaultIndex);
-            _elasticClient = new ElasticClient(conSettings);
-
-
-            if (!_elasticClient.IndexExists(new IndexExistsRequest(defaultIndex)).Exists)
-            {
-                _elasticClient.CreateIndex(defaultIndex).VerifySuccessfulResponse();
-                _elasticClient.Map<ErrorDocument>(m => m
-                    .MapFromAttributes()
-                    .Properties(props => props
-                        .MultiField(mf => mf
-                            .Name(n => n.Message)
-                            .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.Message.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
-                                .String(ps => ps.Name(p => p.Message).Index(FieldIndexOption.Analyzed))
-                            )
-                        )
-                        .MultiField(mf => mf
-                            .Name(n => n.Type)
-                            .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.Type.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
-                                .String(ps => ps.Name(p => p.Type).Index(FieldIndexOption.Analyzed))
-                            )
-                        )
-                        .MultiField(mf => mf
-                            .Name(n => n.Source)
-                            .Fields(pprops => pprops
-                                .String(ps => ps.Name(p => p.Source.Suffix("raw")).Index(FieldIndexOption.NotAnalyzed))
-                                .String(ps => ps.Name(p => p.Source).Index(FieldIndexOption.Analyzed))
-                            )
-                        )
-                    )
-                )
-                .VerifySuccessfulResponse();
-
-            }
-        }
-
-        /// <summary>
-        /// In the previous version the default index would come from the elmah configuration.
-        /// 
-        /// This version supports pulling the default index from the connection string which is cleaner and easier to manage.
-        /// </summary>
-        internal static string GetDefaultIndex(IDictionary config, string connectionString)
-        {
-            //step 1: try to get the default index from the connection string
-            var defaultConnectionString = GetDefaultIndexFromConnectionString(connectionString);
-            if (!string.IsNullOrEmpty(defaultConnectionString))
-            {
-                return defaultConnectionString;
-            }
-
-            //step 2: we couldn't find it in the connection string so get it from the elmah config section or use the default
-            return !string.IsNullOrWhiteSpace(config["defaultIndex"] as string) ? config["defaultIndex"].ToString().ToLower() : "elmah";
-        }
-
-        internal static string GetDefaultIndexFromConnectionString(string connectionString)
-        {
-            Uri myUri = new Uri(connectionString);
-
-            string[] pathSegments = myUri.Segments;
-            string ourIndex = string.Empty;
-
-            if (pathSegments.Length > 1)
-            {
-                //We might have a index here
-                ourIndex = pathSegments[1];
-                ourIndex = RemoveTrailingSlash(ourIndex);
-            }
-
-            return ourIndex;
-        }
-
-        internal static string RemoveTrailingSlash(string connectionString)
-        {
-            if (connectionString.EndsWith("/"))
-            {
-                connectionString = connectionString.Substring(0, connectionString.Length - 1);
-            }
-
-            return connectionString;
-        }
-
-        internal static string RemoveDefaultIndexFromConnectionString(string connectionString)
-        {
-            var uri = new Uri(connectionString);
-            return uri.GetLeftPart(UriPartial.Authority);
-        }
-
-        internal static string ResolveApplicationName(IDictionary config)
-        {
-            return config.Contains("applicationName") ? config["applicationName"].ToString() : string.Empty;
+            return config.Contains(key) ? config[key].ToString() : string.Empty;
         }
     }
 }
