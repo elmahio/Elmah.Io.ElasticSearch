@@ -1,5 +1,7 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Elasticsearch.Net;
+using JetBrains.Annotations;
 using Nest;
 
 namespace Elmah.Io.ElasticSearch
@@ -23,6 +25,20 @@ namespace Elmah.Io.ElasticSearch
             if (!response.IsValid)
             {
                 throw new ElasticsearchServerException(response.ServerError);
+            }
+        }
+
+        /// <summary>
+        /// Used to replace if (object == null) throw new ArgumentNullException("object");
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="paramName"></param>
+        [ContractAnnotation("obj:null => halt")]
+        public static void ThrowIfNull<T>([NoEnumeration] this T obj, string paramName) where T : class
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(paramName);
             }
         }
     }
