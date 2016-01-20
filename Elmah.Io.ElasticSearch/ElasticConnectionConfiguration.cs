@@ -17,7 +17,23 @@ namespace Elmah.Io.ElasticSearch
     }
 
 
-    internal class ElasticConnectionConfiguration
+    internal interface IElasticConnectionConfiguration
+    {
+        /// <summary>
+        /// Introduced in release 1.2, this is the preferred way of specifying the connection string.  It supports:
+        /// 1. multiple ES nodes
+        /// 2. Shield (username/password)
+        /// 3. specifying a default index
+        /// </summary>
+        /// <example>
+        /// "Nodes=https://test:9200,http://dev:9300;DefaultIndex=defaultIndex;Username=foo;Password=bar"
+        /// </example>
+        ElasticSearchClusterConfiguration Parse(string connectionString);
+
+        ElasticSearchClusterConfiguration BuildClusterConfigDeprecated(IDictionary config, string connectionString);
+    }
+
+    internal class ElasticConnectionConfiguration : IElasticConnectionConfiguration
     {
         internal const string DefaultIndexKey = "DefaultIndex=";
         internal const string NodesKey = "Nodes=";
