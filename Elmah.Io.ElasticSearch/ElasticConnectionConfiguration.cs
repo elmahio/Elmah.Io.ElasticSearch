@@ -48,6 +48,15 @@ namespace Elmah.Io.ElasticSearch
                 Password = ParseSingle(connectionString, PasswordKey)
             };
 
+            if (config.NodeUris.IsNullOrEmpty())
+            {
+                throw new ArgumentException($"At least one Node must be specified.  Provided connection string: \"{connectionString}\".  Example of a valid connection string: Nodes=https://test:9200,http://dev:9300;DefaultIndex=defaultIndex;Username=foo;Password=bar");
+            }
+
+            if (config.DefaultIndex == null)
+            {
+                throw new ArgumentException($"A DefaultIndex must be specified.  Provided connection string: \"{connectionString}\".  Example of a valid connection string: Nodes=https://test:9200,http://dev:9300;DefaultIndex=defaultIndex;Username=foo;Password=bar");
+            }
             return config;
         }
 
@@ -62,7 +71,7 @@ namespace Elmah.Io.ElasticSearch
 
             var defaultIndexSegment = connectionStringSegments.FirstOrDefault(p => p.StartsWith(key, StringComparison.OrdinalIgnoreCase));
 
-            return defaultIndexSegment?.Substring(key.Length);
+            return defaultIndexSegment?.Substring(key.Length).TrimToNull();
         }
 
         internal IEnumerable<Uri> ParseCsv(string connectionString, string key)

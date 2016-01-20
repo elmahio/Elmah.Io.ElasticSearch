@@ -18,7 +18,7 @@ namespace Elmah.Io.ElasticSearch
 
         private static ElasticClientSingleton _instance;
         public IElasticClient Client;
-        private ElasticConnectionConfiguration _connectionConfiguration = new ElasticConnectionConfiguration();
+        private IElasticConnectionConfiguration _connectionConfiguration = new ElasticConnectionConfiguration();
 
         public void Dispose()
         {
@@ -31,28 +31,39 @@ namespace Elmah.Io.ElasticSearch
         {
             var config = ReadConfig();
             var connectionString = LoadConnectionString(config);
+            Client = GetElasticClient(connectionString, config);
+        }
+
+        /// <summary>
+        /// Get the ElasticSearch client connection and initialize the index if necessary.
+        /// </summary>
+        private IElasticClient GetElasticClient(string connectionString, IDictionary config)
+        {
             var esClusterConfig = _connectionConfiguration.Parse(connectionString);
+            // ReSharper disable once ConvertIfStatementToNullCoalescingExpression
             if (esClusterConfig == null)
             {
                 //connection string is supplied in a deprecated format
-                #pragma warning disable 618
+#pragma warning disable 618
                 esClusterConfig = _connectionConfiguration.BuildClusterConfigDeprecated(config, connectionString);
-                #pragma warning restore 618
+#pragma warning restore 618
             }
 
             var connectionPool = new SniffingConnectionPool(esClusterConfig.NodeUris);
             var conSettings = new ConnectionSettings(connectionPool, esClusterConfig.DefaultIndex);
             conSettings.SetBasicAuthentication(esClusterConfig.Username, esClusterConfig.Password);
-            
 
-            Client = new ElasticClient(conSettings);
-            if (!Client.IndexExists(new IndexExistsRequest(esClusterConfig.DefaultIndex)).Exists)
+
+            var esClient = new ElasticClient(conSettings);
+            if (!esClient.IndexExists(new IndexExistsRequest(esClusterConfig.DefaultIndex)).Exists)
             {
                 InitIndex(esClusterConfig.DefaultIndex);
             }
+            return esClient;
         }
 
         public static ElasticClientSingleton Instance => _instance ?? (_instance = new ElasticClientSingleton());
+
 
         private void InitIndex(string defaultIndex)
         {

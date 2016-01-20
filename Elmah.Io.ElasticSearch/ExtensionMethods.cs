@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Elasticsearch.Net;
 using JetBrains.Annotations;
@@ -40,6 +42,21 @@ namespace Elmah.Io.ElasticSearch
             {
                 throw new ArgumentNullException(paramName);
             }
+        }
+
+        /// <summary>
+        /// trim the string, then if it is null or empty, return null
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        public static string TrimToNull(this string s)
+        {
+            return string.IsNullOrWhiteSpace(s) ? null : s.Trim();
+        }
+
+        public static bool IsNullOrEmpty<T>(this IEnumerable<T> list)
+        {
+            return list == null || !list.Any();
         }
     }
 }
