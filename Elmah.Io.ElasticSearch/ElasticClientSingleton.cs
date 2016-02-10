@@ -18,9 +18,13 @@ namespace Elmah.Io.ElasticSearch
         private static ElasticClientSingleton _instance;
         public IElasticClient Client;
 
-        private ElasticClientSingleton()
+        private ElasticClientSingleton(IDictionary config = null)
         {
-            var config = ReadConfig();
+            if(ReferenceEquals(config, null))
+            {
+                config = ReadConfig();
+            }
+
             var url = LoadConnectionString(config);
             var defaultIndex = GetDefaultIndex(config, url);
             var conString = RemoveDefaultIndexFromConnectionString(url);
@@ -33,9 +37,9 @@ namespace Elmah.Io.ElasticSearch
             }
         }
 
-        public static ElasticClientSingleton Instance
+        public static ElasticClientSingleton GetInstance(IDictionary config)
         {
-            get { return _instance ?? (_instance = new ElasticClientSingleton()); }
+            return _instance ?? (_instance = new ElasticClientSingleton(config));
         }
 
         private void InitIndex(string defaultIndex)
