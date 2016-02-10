@@ -18,9 +18,9 @@ namespace Elmah.Io.ElasticSearch
         private static ElasticClientSingleton _instance;
         public IElasticClient Client;
 
-        private ElasticClientSingleton(IDictionary config = null)
+        private ElasticClientSingleton(IDictionary config)
         {
-            if(ReferenceEquals(config, null))
+            if (config == null)
             {
                 config = ReadConfig();
             }
