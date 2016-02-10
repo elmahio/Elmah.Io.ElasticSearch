@@ -13,10 +13,14 @@ namespace Elmah.Io.ElasticSearch
         /// <summary>
         /// Debugging method to get the json that was sent to ES
         /// </summary>
-        public static string GetRequestString<T>(this ISearchResponse<T> response) where T : class
+        public static string GetRequestString(this IResponse response)
         {
             var request = response.RequestInformation.Request;
-            return Encoding.Default.GetString(request);
+            if (request != null)
+            {
+                return Encoding.Default.GetString(request);
+            }
+            return response.RequestInformation.RequestUrl;
         }
 
         /// <summary>
@@ -24,18 +28,16 @@ namespace Elmah.Io.ElasticSearch
         /// </summary>
         public static T VerifySuccessfulResponse<T>(this T response) where T : IResponse
         {
-            if (!response.IsValid)
+            if (response.IsValid)
             {
-                if (response.ServerError != null)
-                {
-                    throw new ElasticsearchServerException(response.ServerError);
-                }
-                else
-                {
-                    throw new InvalidOperationException("ElasticSearch response was invalid, but no ServerError was communicated");
-                }
+                return response;
             }
-            return response;
+            if (response.ServerError != null)
+            {
+                throw new ElasticsearchServerException(response.ServerError);
+            }
+            var request = response.GetRequestString();
+            throw new InvalidOperationException($"ElasticSearch response was invalid, status code = {response.ConnectionStatus.HttpStatusCode}, request = {request}");
         }
 
 
