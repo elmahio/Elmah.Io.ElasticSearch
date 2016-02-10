@@ -2,12 +2,13 @@
 using System.Collections;
 using System.Configuration;
 using System.Linq;
+using Elasticsearch.Net.ConnectionPool;
 using Nest;
 
 namespace Elmah.Io.ElasticSearch
 {
     /// <summary>
-    /// The IElasticClient is intented to be a singleton.  If we were using
+    /// The IElasticClient is intended to be a singleton.  If we were using
     /// IOC we could inject it as such, but because the Elmah base code is
     /// so old it's not really supported.  Hence this class to manage it for us.
     /// </summary>
@@ -17,6 +18,14 @@ namespace Elmah.Io.ElasticSearch
 
         private static ElasticClientSingleton _instance;
         public IElasticClient Client;
+        private IElasticConnectionConfiguration _connectionConfiguration = new ElasticConnectionConfiguration();
+
+        public void Dispose()
+        {
+            _instance = null;
+            Client = null;
+            _connectionConfiguration = null;
+        }
 
         private ElasticClientSingleton(IDictionary config)
         {
@@ -25,16 +34,8 @@ namespace Elmah.Io.ElasticSearch
                 config = ReadConfig();
             }
 
-            var url = LoadConnectionString(config);
-            var defaultIndex = GetDefaultIndex(config, url);
-            var conString = RemoveDefaultIndexFromConnectionString(url);
-            var conSettings = new ConnectionSettings(new Uri(conString), defaultIndex);
-
-            Client = new ElasticClient(conSettings);
-            if (!Client.IndexExists(new IndexExistsRequest(defaultIndex)).Exists)
-            {
-                InitIndex(defaultIndex);
-            }
+            var connectionString = LoadConnectionString(config);
+            Client = GetElasticClient(connectionString, config);
         }
 
         public static ElasticClientSingleton GetInstance(IDictionary config)
@@ -42,10 +43,42 @@ namespace Elmah.Io.ElasticSearch
             return _instance ?? (_instance = new ElasticClientSingleton(config));
         }
 
-        private void InitIndex(string defaultIndex)
+        /// <summary>
+        /// Get the ElasticSearch client connection and initialize the index if necessary.
+        /// </summary>
+        private IElasticClient GetElasticClient(string connectionString, IDictionary config)
         {
-            Client.CreateIndex(defaultIndex).VerifySuccessfulResponse();
-            Client.Map<ErrorDocument>(m => m
+            var esClusterConfig = _connectionConfiguration.Parse(connectionString);
+            // ReSharper disable once ConvertIfStatementToNullCoalescingExpression
+            if (esClusterConfig == null)
+            {
+                //connection string is supplied in a deprecated format
+                #pragma warning disable 618
+                esClusterConfig = _connectionConfiguration.BuildClusterConfigDeprecated(config, connectionString);
+                #pragma warning restore 618
+            }
+
+            var connectionPool = new SniffingConnectionPool(esClusterConfig.NodeUris);
+            var conSettings = new ConnectionSettings(connectionPool, esClusterConfig.DefaultIndex);
+            conSettings.SetBasicAuthentication(esClusterConfig.Username, esClusterConfig.Password);
+
+
+            var esClient = new ElasticClient(conSettings);
+            var indexExistsResponse = esClient.IndexExists(new IndexExistsRequest(esClusterConfig.DefaultIndex)).VerifySuccessfulResponse();
+            if (!indexExistsResponse.Exists)
+            {
+                CreateIndexWithMapping(esClient, esClusterConfig.DefaultIndex);
+            }
+            return esClient;
+        }
+
+
+
+
+        private static void CreateIndexWithMapping(IElasticClient esClient, string defaultIndex)
+        {
+            esClient.CreateIndex(defaultIndex).VerifySuccessfulResponse();
+            esClient.Map<ErrorDocument>(m => m
                 .MapFromAttributes()
                 .Properties(CreateMultiFieldsForAllStrings)
                 )
@@ -60,10 +93,11 @@ namespace Elmah.Io.ElasticSearch
                     && x.Name != "Id" //id field is obviously excluded
                     && x.Name != "ErrorXml"//errorXML field is so long it has no indexer on it at all
                     );
+            // ReSharper disable once LoopCanBePartlyConvertedToQuery
             foreach (var m in members)
             {
                 var name = m.Name;
-                name = Char.ToLowerInvariant(name[0]) + name.Substring(1);//lowercase the first character
+                name = char.ToLowerInvariant(name[0]) + name.Substring(1);//lowercase the first character
                 props
                     .MultiField(mf => mf
                         .Name(name)
@@ -78,7 +112,7 @@ namespace Elmah.Io.ElasticSearch
 
         //Inspired by SimpleServiceProviderFactory.CreateFromConfigSection(string sectionName)
         //https://github.com/mikefrey/ELMAH/blob/master/src/Elmah/SimpleServiceProviderFactory.cs
-        //definitely a little redundant givent that the same code gets passed into the actual ErrorLog impl.
+        //definitely a little redundant given that the same code gets passed into the actual ErrorLog impl.
         private static IDictionary ReadConfig()
         {
             //
@@ -109,6 +143,9 @@ namespace Elmah.Io.ElasticSearch
             return config;
         }
 
+        /// <summary>
+        /// returns the ElasticSearch connection string
+        /// </summary>
         private static string LoadConnectionString(IDictionary config)
         {
             // From ELMAH source
@@ -117,75 +154,19 @@ namespace Elmah.Io.ElasticSearch
             // the configuration to get the actual connection string.
             var connectionStringName = (string)config["connectionStringName"];
 
-            if (!string.IsNullOrEmpty(connectionStringName))
+            if (string.IsNullOrEmpty(connectionStringName))
             {
-                var settings = ConfigurationManager.ConnectionStrings[connectionStringName];
+                throw new ApplicationException("You must specify the 'connectionStringName' attribute on the <errorLog /> element.");
+            }
+            var settings = ConfigurationManager.ConnectionStrings[connectionStringName];
 
-                if (settings != null)
-                    return settings.ConnectionString;
-
-                throw new ApplicationException(string.Format("Could not find a ConnectionString with the name '{0}'.", connectionStringName));
+            if (settings != null)
+            {
+                return settings.ConnectionString;
             }
 
-            throw new ApplicationException("You must specifiy the 'connectionStringName' attribute on the <errorLog /> element.");
+            throw new ApplicationException($"Could not find a ConnectionString with the name '{connectionStringName}'.");
         }
 
-        /// <summary>
-        /// In the previous version the default index would come from the elmah configuration.
-        /// 
-        /// This version supports pulling the default index from the connection string which is cleaner and easier to manage.
-        /// </summary>
-        internal static string GetDefaultIndex(IDictionary config, string connectionString)
-        {
-            //step 1: try to get the default index from the connection string
-            var defaultConnectionString = GetDefaultIndexFromConnectionString(connectionString);
-            if (!string.IsNullOrEmpty(defaultConnectionString))
-            {
-                return defaultConnectionString;
-            }
-
-            //step 2: we couldn't find it in the connection string so get it from the elmah config section or use the default
-            return !string.IsNullOrWhiteSpace(config["defaultIndex"] as string) ? config["defaultIndex"].ToString().ToLower() : "elmah";
-        }
-
-        internal static string GetDefaultIndexFromConnectionString(string connectionString)
-        {
-            Uri myUri = new Uri(connectionString);
-
-            string[] pathSegments = myUri.Segments;
-            string ourIndex = string.Empty;
-
-            if (pathSegments.Length > 1)
-            {
-                //We might have a index here
-                ourIndex = pathSegments[1];
-                ourIndex = RemoveTrailingSlash(ourIndex);
-            }
-
-            return ourIndex;
-        }
-
-        internal static string RemoveTrailingSlash(string connectionString)
-        {
-            if (connectionString.EndsWith("/"))
-            {
-                connectionString = connectionString.Substring(0, connectionString.Length - 1);
-            }
-
-            return connectionString;
-        }
-
-        internal static string RemoveDefaultIndexFromConnectionString(string connectionString)
-        {
-            var uri = new Uri(connectionString);
-            return uri.GetLeftPart(UriPartial.Authority);
-        }
-
-        public void Dispose()
-        {
-            _instance = null;
-            Client = null;
-        }
     }
-
 }
