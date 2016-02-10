@@ -20,7 +20,7 @@ namespace Elmah.Io.ElasticSearch
         {
             InitializeConfigParameters(config);
 
-            _elasticClient = ElasticClientSingleton.Instance.Client;
+            _elasticClient = ElasticClientSingleton.GetInstance(config).Client;
         }
 
         /// <summary>
