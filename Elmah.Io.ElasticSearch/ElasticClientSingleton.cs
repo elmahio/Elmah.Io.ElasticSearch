@@ -67,7 +67,7 @@ namespace Elmah.Io.ElasticSearch
             var indexExistsResponse = esClient.IndexExists(new IndexExistsRequest(esClusterConfig.DefaultIndex)).VerifySuccessfulResponse();
             if (!indexExistsResponse.Exists)
             {
-                InitIndex(esClusterConfig.DefaultIndex);
+                CreateIndexWithMapping(esClient, esClusterConfig.DefaultIndex);
             }
             return esClient;
         }
@@ -75,10 +75,10 @@ namespace Elmah.Io.ElasticSearch
 
 
 
-        private void InitIndex(string defaultIndex)
+        private static void CreateIndexWithMapping(IElasticClient esClient, string defaultIndex)
         {
-            Client.CreateIndex(defaultIndex).VerifySuccessfulResponse();
-            Client.Map<ErrorDocument>(m => m
+            esClient.CreateIndex(defaultIndex).VerifySuccessfulResponse();
+            esClient.Map<ErrorDocument>(m => m
                 .MapFromAttributes()
                 .Properties(CreateMultiFieldsForAllStrings)
                 )
