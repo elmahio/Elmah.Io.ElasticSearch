@@ -27,11 +27,20 @@ namespace Elmah.Io.ElasticSearch
             _connectionConfiguration = null;
         }
 
-        private ElasticClientSingleton()
+        private ElasticClientSingleton(IDictionary config)
         {
-            var config = ReadConfig();
+            if (config == null)
+            {
+                config = ReadConfig();
+            }
+
             var connectionString = LoadConnectionString(config);
             Client = GetElasticClient(connectionString, config);
+        }
+
+        public static ElasticClientSingleton GetInstance(IDictionary config)
+        {
+            return _instance ?? (_instance = new ElasticClientSingleton(config));
         }
 
         /// <summary>
@@ -44,9 +53,9 @@ namespace Elmah.Io.ElasticSearch
             if (esClusterConfig == null)
             {
                 //connection string is supplied in a deprecated format
-#pragma warning disable 618
+                #pragma warning disable 618
                 esClusterConfig = _connectionConfiguration.BuildClusterConfigDeprecated(config, connectionString);
-#pragma warning restore 618
+                #pragma warning restore 618
             }
 
             var connectionPool = new SniffingConnectionPool(esClusterConfig.NodeUris);
@@ -55,14 +64,15 @@ namespace Elmah.Io.ElasticSearch
 
 
             var esClient = new ElasticClient(conSettings);
-            if (!esClient.IndexExists(new IndexExistsRequest(esClusterConfig.DefaultIndex)).Exists)
+            var indexExistsResponse = esClient.IndexExists(new IndexExistsRequest(esClusterConfig.DefaultIndex)).VerifySuccessfulResponse();
+            if (!indexExistsResponse.Exists)
             {
                 InitIndex(esClusterConfig.DefaultIndex);
             }
             return esClient;
         }
 
-        public static ElasticClientSingleton Instance => _instance ?? (_instance = new ElasticClientSingleton());
+
 
 
         private void InitIndex(string defaultIndex)
@@ -156,8 +166,7 @@ namespace Elmah.Io.ElasticSearch
             }
 
             throw new ApplicationException($"Could not find a ConnectionString with the name '{connectionStringName}'.");
-        }             
+        }
 
     }
-
 }

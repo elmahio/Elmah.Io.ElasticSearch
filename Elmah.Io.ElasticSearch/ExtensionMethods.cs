@@ -22,13 +22,22 @@ namespace Elmah.Io.ElasticSearch
         /// <summary>
         /// ensure that the ES command was run successfully on the server
         /// </summary>
-        public static void VerifySuccessfulResponse(this IResponse response)
+        public static T VerifySuccessfulResponse<T>(this T response) where T : IResponse
         {
             if (!response.IsValid)
             {
-                throw new ElasticsearchServerException(response.ServerError);
+                if (response.ServerError != null)
+                {
+                    throw new ElasticsearchServerException(response.ServerError);
+                }
+                else
+                {
+                    throw new InvalidOperationException("ElasticSearch response was invalid, but no ServerError was communicated");
+                }
             }
+            return response;
         }
+
 
         /// <summary>
         /// Used to replace if (object == null) throw new ArgumentNullException("object");
