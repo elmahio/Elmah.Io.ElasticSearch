@@ -29,7 +29,7 @@ A list of 1 to N Nodes - This is a comma separated list of nodes for your ES clu
 Example of a single node:
 ```
         <add name="ElmahElasticSearch" connectionString="Nodes=http://localhost:9200;DefaultIndex=elmah" />
-        ```
+```
 Example of specifying 3 nodes:
 ```
 <connectionStrings>
