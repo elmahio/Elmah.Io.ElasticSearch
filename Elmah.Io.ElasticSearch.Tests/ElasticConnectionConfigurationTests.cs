@@ -188,7 +188,9 @@ namespace Elmah.Io.ElasticSearch.Tests
             };
 
             //act 
+#pragma warning disable CS0618 // Type or member is obsolete
             var defaultIndex = ElasticConnectionConfiguration.GetDefaultIndex(dict, connectionString);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             //assert
             Assert.AreEqual(expectedDefaultIndex.ToLower(), defaultIndex);
@@ -203,7 +205,9 @@ namespace Elmah.Io.ElasticSearch.Tests
         public void GetDefaultIndexFromConnectionString(string connectionString, string expectedResult)
         {
             //act 
+#pragma warning disable CS0618 // Type or member is obsolete
             var defaultIndex = ElasticConnectionConfiguration.GetDefaultIndex(null, connectionString);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             //assert
             Assert.AreEqual(expectedResult, defaultIndex);
