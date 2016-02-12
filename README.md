@@ -70,7 +70,7 @@ elmah:
 ```
 The user needs to be able to check if the index exists and if it does not exist it needs to be able to create the index plus apply the mapping.
 
-#### 4. `<errorLog>` configuration
+#### 4. `<elmah>` configuration
 ```
   <elmah>
     <errorLog
@@ -89,6 +89,8 @@ In the example above you can see the following optional fields have been specifi
 1. Application Name
 2. Environment Name
 3. Customer Name
+
+You can see a sample web.config that has both the `<elmah>` configuration and the connection string [here] (Elmah.Io.ElasticSearch.Web/Web.config)
 
 
 
