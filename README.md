@@ -61,7 +61,7 @@ The index can also be specified as a **rolling index**.  In the example below th
 </connectionStrings>
 ```
 
-Note: when using ES Shield here are the recommended settings for a user role with the name 'elmah'
+When using ES Shield here are the recommended settings for a user role with the name 'elmah'
 ```
 elmah:
   indices:
@@ -85,6 +85,7 @@ The user needs to be able to check if the index exists and if it does not exist 
 ```
 
 In the example above you can see the following optional fields have been specified:
+
 1. Application Name
 2. Environment Name
 3. Customer Name
