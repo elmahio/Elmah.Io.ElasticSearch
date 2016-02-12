@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Elmah.Io.ElasticSearch
 {
@@ -59,7 +61,7 @@ namespace Elmah.Io.ElasticSearch
             var config = new ElasticSearchClusterConfiguration
             {
                 NodeUris = ParseCsv(connectionString, NodesKey),
-                DefaultIndex = ParseSingle(connectionString, DefaultIndexKey),
+                DefaultIndex = GetDefaultIndex(connectionString),
                 Username = ParseSingle(connectionString, UsernameKey),
                 Password = ParseSingle(connectionString, PasswordKey)
             };
@@ -74,6 +76,26 @@ namespace Elmah.Io.ElasticSearch
                 throw new ArgumentException($"A DefaultIndex must be specified.  Provided connection string: \"{connectionString}\".  Example of a valid connection string: Nodes=https://test:9200,http://dev:9300;DefaultIndex=defaultIndex;Username=foo;Password=bar");
             }
             return config;
+        }
+
+        internal virtual string GetDefaultIndex(string connectionString)
+        {
+            var indexName = ParseSingle(connectionString, DefaultIndexKey);
+            if (indexName == null)
+            {
+                return null;
+            }
+            var dateFormatRegex = new Regex("\\${(.+)}");
+            var match = dateFormatRegex.Match(indexName);
+            if (!match.Success)
+            {
+                return indexName;
+            }
+            var dateFormat = match.Groups[1].Value;
+            var dt = DateTimeOffset.Now.ToString(dateFormat);
+
+            var newIndexName = dateFormatRegex.Replace(indexName, dt);
+            return newIndexName;            
         }
 
         internal string ParseSingle(string connectionString, string key)

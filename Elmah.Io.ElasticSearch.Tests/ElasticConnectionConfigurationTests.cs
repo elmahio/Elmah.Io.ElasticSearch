@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Moq;
+using Nest;
 using NUnit.Framework;
 
 namespace Elmah.Io.ElasticSearch.Tests
@@ -123,6 +125,53 @@ namespace Elmah.Io.ElasticSearch.Tests
             return _service.ParseSingle(connectionString, ElasticConnectionConfiguration.PasswordKey);
         }
 
+        // ReSharper disable once UnusedMethodReturnValue.Local
+        private static IEnumerable<TestCaseData> GetDefaultIndexTests()
+        {
+            //straight index, no date format
+            yield return new TestCaseData("DefaultIndex=abc123").Returns("abc123");
+
+            //valid date formats
+            const string fmt1 = "yyyy.MM.dd";
+            const string fmt2 = "yyyy.MM";            
+            yield return new TestCaseData($"DefaultIndex=${{{fmt1}}}").Returns(DateTimeOffset.Now.ToString(fmt1));
+            yield return new TestCaseData($"DefaultIndex=prefix_${{{fmt1}}}").Returns("prefix_" + DateTimeOffset.Now.ToString(fmt1));
+            yield return new TestCaseData($"DefaultIndex=prefix_${{{fmt1}}}_suffix").Returns($"prefix_{DateTimeOffset.Now.ToString(fmt1)}_suffix");
+            yield return new TestCaseData($"DefaultIndex=${{{fmt2}}}").Returns(DateTimeOffset.Now.ToString(fmt2));
+
+            const string invalidFormat = "123456789";//garbage format
+            yield return new TestCaseData($"DefaultIndex=${{{invalidFormat}}}").Returns(invalidFormat);
+
+            //no default index specified
+            yield return new TestCaseData("Nodes=https://test:9200;Password=pass").Returns(null);
+        }
+
+        /// <summary>
+        /// test the default index method which includes date parsing
+        /// </summary>
+        [TestCaseSource(nameof(GetDefaultIndexTests))]
+        public string GetDefaultIndex(string connectionString)
+        {
+            return _service.GetDefaultIndex(connectionString);
+        }
+
+        [Test]
+        public void Parse_CallsGetDefaultIndex()
+        {
+            //arrange
+            var serviceLocal = new Mock<ElasticConnectionConfiguration>
+            {
+                CallBase = true
+            };
+            const string connectionString = "Nodes=https://test:9200,http://test2:9300/;DefaultIndex=defaultIndex";
+            
+            //act
+            serviceLocal.Object.Parse(connectionString);
+
+            //assert
+            serviceLocal.Verify(x=>x.GetDefaultIndex(connectionString), Times.Once);
+        }
+
         #region tests for depreciated methods
         /// <summary>
         /// test getting the default from the elmah config instead of from the connection string
@@ -139,7 +188,9 @@ namespace Elmah.Io.ElasticSearch.Tests
             };
 
             //act 
+#pragma warning disable CS0618 // Type or member is obsolete
             var defaultIndex = ElasticConnectionConfiguration.GetDefaultIndex(dict, connectionString);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             //assert
             Assert.AreEqual(expectedDefaultIndex.ToLower(), defaultIndex);
