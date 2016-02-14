@@ -20,7 +20,7 @@ namespace Elmah.Io.ElasticSearch
         {
             InitializeConfigParameters(config);
 
-            _elasticClient = ElasticClientSingleton.Instance.Client;
+            _elasticClient = ElasticClientSingleton.GetInstance(config).Client;
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Elmah.Io.ElasticSearch
         {
             if (config == null)
             {
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             }
 
             ApplicationName = ResolveConfigurationParam(config, "applicationName");
@@ -70,8 +70,7 @@ namespace Elmah.Io.ElasticSearch
 
         public override ErrorLogEntry GetError(string id)
         {
-            var errorDoc = _elasticClient.Get<ErrorDocument>(x => x.Id(id));
-            errorDoc.VerifySuccessfulResponse();
+            var errorDoc = _elasticClient.Get<ErrorDocument>(x => x.Id(id)).VerifySuccessfulResponse();
             var error = ErrorXml.DecodeString(errorDoc.Source.ErrorXml);
             error.ApplicationName = ApplicationName;
             var result = new ErrorLogEntry(this, id, error);
@@ -86,8 +85,8 @@ namespace Elmah.Io.ElasticSearch
                 .Skip(pageSize * pageIndex)
                 .Take(pageSize)
                 .Sort(s => s.OnField(e => e.Time).Descending())
-                );
-            result.VerifySuccessfulResponse();
+                )
+                .VerifySuccessfulResponse();
 
             foreach (var errorDocHit in result.Hits)
             {

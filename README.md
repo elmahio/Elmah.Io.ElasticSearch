@@ -6,14 +6,14 @@ Elmah.Io.ElasticSearch is an Elasticsearch storage backend for ELMAH.
 Builds:    
 [![teamcity](http://img.shields.io/teamcity/http/teamcity.codebetter.com/e/bt1123.svg?style=flat-square)](http://teamcity.codebetter.com/viewType.html?buildTypeId=bt1123)
 
-#Release 1.1 is live! [Release Notes](https://github.com/elmahio/Elmah.Io.ElasticSearch/releases/tag/1.1)
+# Release 1.2 is live! [Release Notes](https://github.com/elmahio/Elmah.Io.ElasticSearch/wiki/1.2-Release-Notes)
 
 
 ## How
-Elmah.Io.ElasticSearch is configured pretty much like every other storage implementation for Elmah. To get started, add the following to your web.config:
+Elmah.Io.ElasticSearch is configured like other implementations for Elmah. To get started, add the following to your web.config:
 
     <connectionStrings>
-        <add name="ElmahIoElasticSearch" connectionString="http://localhost:9200/elmah"/>
+        <add name="ElmahElasticSearch" connectionString="Nodes=http://localhost:9200,http://server2:9200, http://server3:9200;DefaultIndex=elmah;Username=elmahUser;Password=elmahPass" />
     </connectionStrings>
 
     <elmah>
@@ -21,43 +21,61 @@ Elmah.Io.ElasticSearch is configured pretty much like every other storage implem
         connectionStringName="ElmahIoElasticSearch" />
     </elmah>
 
-Replace the connection string URL with your Elasticsearch URL and add the elmah config section as explained on the [offical ELMAH site](https://code.google.com/p/elmah/).
+## Configuration
+The ElasticSearch connection string supports the following information:
 
-##Configuration
-
-
-The Elasticsearch index name can be specified one of two ways, let's say you want the index name to be elmahCurrent:
-
-1: Put it in the connection string *(preferred)*
+#### 1. Specify Node URL(s)
+A list of 1 to N Nodes - This is a comma separated list of nodes for your ES cluster.
+Example of a single node:
+```
+        <add name="ElmahElasticSearch" connectionString="Nodes=http://localhost:9200;DefaultIndex=elmah" />
+```
+Example of specifying 3 nodes:
 ```
 <connectionStrings>
-    <add name="ElmahIoElasticSearch" connectionString="http://localhost:9200/elmahCurrent"/>
+    <add name="ElmahElasticSearch" connectionString="Nodes=http://localhost:9200,http://server2:9200, http://server3:9200;DefaultIndex=elmah" />
 </connectionStrings>
 ```
-2: Leave it off the connection string and put it in the elmah specification
+
+#### 2. Specify Default index
+The default index for Elmah can be specified as a static index.
+
+In this example the index has the name "elmahIndex1"
 ```
 <connectionStrings>
-    <add name="ElmahIoElasticSearch" connectionString="http://localhost:9200"/>
+    <add name="ElmahElasticSearch" connectionString="Nodes=http://localhost:9200,http://server2:9200, http://server3:9200;DefaultIndex=elmahIndex1;" />
 </connectionStrings>
-
-<errorLog
-    type="Elmah.Io.ElasticSearch.ElasticSearchErrorLog, Elmah.Io.ElasticSearch"
-    connectionStringName="ElmahIoElasticSearch"
-    defaultIndex="elmahCurrent" />
 ```
 
-You can optionally specify the following fields that will be written to search:
+The index can also be specified as a **rolling index**.  In the example below the index uses the current day, month, and year.
+```
+<connectionStrings>
+    <add name="ElmahElasticSearch" connectionString="Nodes=http://localhost:9200,http://server2:9200, http://server3:9200;DefaultIndex=elmah-${yyyy.MM.dd};" />
+</connectionStrings>
+```
 
-1. Application Name
-2. Environment Name
-3. Customer Name
+#### 3. Specify a username and password for use with ElasticSearch Shield.
+```
+<connectionStrings>
+    <add name="ElmahElasticSearch" connectionString="Nodes=http://localhost:9200,http://server2:9200, http://server3:9200;DefaultIndex=elmah;Username=elmahUser;Password=elmahPass" />
+</connectionStrings>
+```
 
-Specify these in the <errorLog> attribute:
+When using ES Shield here are the recommended settings for a user role with the name 'elmah'
+```
+elmah:
+  indices:
+    'elmah':
+      privileges: read, index, indices:admin/get, indices:admin/exists, indices:admin/mapping/put, create_index
+```
+The user needs to be able to check if the index exists and if it does not exist it needs to be able to create the index plus apply the mapping.
+
+#### 4. `<elmah>` configuration
 ```
   <elmah>
-    <errorLog 
-        type="Elmah.Io.ElasticSearch.ElasticSearchErrorLog, Elmah.Io.ElasticSearch, Version=1.0.0.0, Culture=neutral" 
-        connectionStringName="ElmahElasticSearch" 
+    <errorLog
+        type="Elmah.Io.ElasticSearch.ElasticSearchErrorLog, Elmah.Io.ElasticSearch, Version=1.0.0.0, Culture=neutral"
+        connectionStringName="ElmahElasticSearch"
         applicationName="ElmahElasticSearchSampleWebsite"
         environmentName="development"
         customerName="sample customer"
@@ -66,7 +84,17 @@ Specify these in the <errorLog> attribute:
   </elmah>
 ```
 
-##Retreiving raw data
+In the example above you can see the following optional fields have been specified:
+
+1. Application Name
+2. Environment Name
+3. Customer Name
+
+You can see a sample web.config that has both the `<elmah>` configuration and the connection string [here] (Elmah.Io.ElasticSearch.Web/Web.config)
+
+
+
+## Retreiving raw data
 To get the data from Elastic, run the following:
 ```
 GET elmah/error/_search
