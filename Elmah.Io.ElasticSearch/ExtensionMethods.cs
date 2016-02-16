@@ -37,7 +37,7 @@ namespace Elmah.Io.ElasticSearch
                 throw new ElasticsearchServerException(response.ServerError);
             }
             var request = response.GetRequestString();
-            throw new InvalidOperationException($"ElasticSearch response was invalid, status code = {response.ConnectionStatus.HttpStatusCode}, request = {request}");
+            throw new InvalidOperationException(string.Format("ElasticSearch response was invalid, status code = {0}, request = {1}", response.ConnectionStatus.HttpStatusCode, request));
         }
 
 
