@@ -165,7 +165,7 @@ namespace Elmah.Io.ElasticSearch
                 return settings.ConnectionString;
             }
 
-            throw new ApplicationException($"Could not find a ConnectionString with the name '{connectionStringName}'.");
+            throw new ApplicationException(string.Format("Could not find a ConnectionString with the name '{0}'.", connectionStringName));
         }
 
     }

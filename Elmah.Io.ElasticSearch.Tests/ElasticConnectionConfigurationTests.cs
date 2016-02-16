@@ -134,13 +134,13 @@ namespace Elmah.Io.ElasticSearch.Tests
             //valid date formats
             const string fmt1 = "yyyy.MM.dd";
             const string fmt2 = "yyyy.MM";            
-            yield return new TestCaseData($"DefaultIndex=${{{fmt1}}}").Returns(DateTimeOffset.Now.ToString(fmt1));
-            yield return new TestCaseData($"DefaultIndex=prefix_${{{fmt1}}}").Returns("prefix_" + DateTimeOffset.Now.ToString(fmt1));
-            yield return new TestCaseData($"DefaultIndex=prefix_${{{fmt1}}}_suffix").Returns($"prefix_{DateTimeOffset.Now.ToString(fmt1)}_suffix");
-            yield return new TestCaseData($"DefaultIndex=${{{fmt2}}}").Returns(DateTimeOffset.Now.ToString(fmt2));
+            yield return new TestCaseData(string.Format("DefaultIndex=${{{0}}}", fmt1)).Returns(DateTimeOffset.Now.ToString(fmt1));
+            yield return new TestCaseData(string.Format("DefaultIndex=prefix_${{{0}}}", fmt1)).Returns("prefix_" + DateTimeOffset.Now.ToString(fmt1));
+            yield return new TestCaseData(string.Format("DefaultIndex=prefix_${{{0}}}_suffix", fmt1)).Returns(string.Format("prefix_{0}_suffix", DateTimeOffset.Now.ToString(fmt1)));
+            yield return new TestCaseData(string.Format("DefaultIndex=${{{0}}}", fmt2)).Returns(DateTimeOffset.Now.ToString(fmt2));
 
             const string invalidFormat = "123456789";//garbage format
-            yield return new TestCaseData($"DefaultIndex=${{{invalidFormat}}}").Returns(invalidFormat);
+            yield return new TestCaseData(string.Format("DefaultIndex=${{{0}}}", invalidFormat)).Returns(invalidFormat);
 
             //no default index specified
             yield return new TestCaseData("Nodes=https://test:9200;Password=pass").Returns(null);
