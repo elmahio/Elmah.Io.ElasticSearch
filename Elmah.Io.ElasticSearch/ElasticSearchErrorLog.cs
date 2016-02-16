@@ -35,11 +35,7 @@ namespace Elmah.Io.ElasticSearch
 
         private void InitializeConfigParameters(IDictionary config)
         {
-            if (config == null)
-            {
-                throw new ArgumentNullException(nameof(config));
-            }
-
+            config.ThrowIfNull("config");
             ApplicationName = ResolveConfigurationParam(config, "applicationName");
             EnvironmentName = ResolveConfigurationParam(config, "environmentName");
             CustomerName = ResolveConfigurationParam(config, "customerName");
