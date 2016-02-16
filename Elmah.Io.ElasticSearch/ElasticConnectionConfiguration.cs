@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Elmah.Io.ElasticSearch
@@ -68,12 +65,12 @@ namespace Elmah.Io.ElasticSearch
 
             if (config.NodeUris.IsNullOrEmpty())
             {
-                throw new ArgumentException($"At least one Node must be specified.  Provided connection string: \"{connectionString}\".  Example of a valid connection string: Nodes=https://test:9200,http://dev:9300;DefaultIndex=defaultIndex;Username=foo;Password=bar");
+                throw new ArgumentException(string.Format("At least one Node must be specified.  Provided connection string: \"{0}\".  Example of a valid connection string: Nodes=https://test:9200,http://dev:9300;DefaultIndex=defaultIndex;Username=foo;Password=bar", connectionString));
             }
 
             if (config.DefaultIndex == null)
             {
-                throw new ArgumentException($"A DefaultIndex must be specified.  Provided connection string: \"{connectionString}\".  Example of a valid connection string: Nodes=https://test:9200,http://dev:9300;DefaultIndex=defaultIndex;Username=foo;Password=bar");
+                throw new ArgumentException(string.Format("A DefaultIndex must be specified.  Provided connection string: \"{0}\".  Example of a valid connection string: Nodes=https://test:9200,http://dev:9300;DefaultIndex=defaultIndex;Username=foo;Password=bar", connectionString));
             }
             return config;
         }
