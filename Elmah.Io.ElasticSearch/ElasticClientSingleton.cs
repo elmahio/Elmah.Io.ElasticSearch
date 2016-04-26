@@ -60,8 +60,12 @@ namespace Elmah.Io.ElasticSearch
 
             var connectionPool = new SniffingConnectionPool(esClusterConfig.NodeUris);
             var conSettings = new ConnectionSettings(connectionPool, esClusterConfig.DefaultIndex);
-            conSettings.SetBasicAuthentication(esClusterConfig.Username, esClusterConfig.Password);
 
+            // set basic auth if username and password are provided in config string.
+            if (!string.IsNullOrWhiteSpace(esClusterConfig.Username) && !string.IsNullOrWhiteSpace(esClusterConfig.Password))
+            {
+                conSettings.SetBasicAuthentication(esClusterConfig.Username, esClusterConfig.Password);
+            }
 
             var esClient = new ElasticClient(conSettings);
             var indexExistsResponse = esClient.IndexExists(new IndexExistsRequest(esClusterConfig.DefaultIndex)).VerifySuccessfulResponse();
@@ -124,7 +128,7 @@ namespace Elmah.Io.ElasticSearch
                 return null;
 
             //
-            // We modify the settings by removing items as we consume 
+            // We modify the settings by removing items as we consume
             // them so make a copy here.
             //
             config = (IDictionary)((ICloneable)config).Clone();
@@ -149,8 +153,8 @@ namespace Elmah.Io.ElasticSearch
         private static string LoadConnectionString(IDictionary config)
         {
             // From ELMAH source
-            // First look for a connection string name that can be 
-            // subsequently indexed into the <connectionStrings> section of 
+            // First look for a connection string name that can be
+            // subsequently indexed into the <connectionStrings> section of
             // the configuration to get the actual connection string.
             var connectionStringName = (string)config["connectionStringName"];
 
