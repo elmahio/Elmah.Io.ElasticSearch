@@ -86,7 +86,7 @@ namespace Elmah.Io.ElasticSearch.Tests
 
             var elasticClientMock = new Mock<IElasticClient>();
             elasticClientMock
-                .Setup(x => x.Get(It.IsAny<Func<GetDescriptor<ErrorDocument>, GetDescriptor<ErrorDocument>>>()))
+                .Setup(x => x.Get(id, (Func<GetDescriptor<ErrorDocument>, IGetRequest>)null))
                 .Returns(mockResponse.Object);
 
             var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object, new Hashtable())

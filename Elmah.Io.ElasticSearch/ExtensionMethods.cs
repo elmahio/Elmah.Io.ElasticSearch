@@ -15,12 +15,13 @@ namespace Elmah.Io.ElasticSearch
         /// </summary>
         public static string GetRequestString(this IResponse response)
         {
-            var request = response.RequestInformation.Request;
-            if (request != null)
+            var apiCall = response.ApiCall;
+            var requestBytes = apiCall.RequestBodyInBytes;
+            if (requestBytes != null)
             {
-                return Encoding.Default.GetString(request);
+                return Encoding.Default.GetString(requestBytes);
             }
-            return response.RequestInformation.RequestUrl;
+            return apiCall.Uri.ToString();
         }
 
         /// <summary>
@@ -34,10 +35,9 @@ namespace Elmah.Io.ElasticSearch
             }
             if (response.ServerError != null)
             {
-                throw new ElasticsearchServerException(response.ServerError);
+                throw response.OriginalException;
             }
-            var request = response.GetRequestString();
-            throw new InvalidOperationException(string.Format("ElasticSearch response was invalid, status code = {0}, request = {1}", response.ConnectionStatus.HttpStatusCode, request));
+            throw new InvalidOperationException(response.DebugInformation);
         }
 
 
