@@ -2,7 +2,8 @@
 using System.Collections;
 using System.Configuration;
 using System.Linq;
-using Elasticsearch.Net.ConnectionPool;
+using Elasticsearch.Net;
+//using Elasticsearch.Net.ConnectionPool;
 using Nest;
 
 namespace Elmah.Io.ElasticSearch
@@ -58,13 +59,15 @@ namespace Elmah.Io.ElasticSearch
                 #pragma warning restore 618
             }
 
-            var connectionPool = new SniffingConnectionPool(esClusterConfig.NodeUris);
-            var conSettings = new ConnectionSettings(connectionPool, esClusterConfig.DefaultIndex);
-
+            var connectionPool = new StaticConnectionPool(esClusterConfig.NodeUris);
+            var conSettings = new ConnectionSettings(connectionPool);
+            conSettings.DefaultIndex(esClusterConfig.DefaultIndex);
+            //conSettings.DisableDirectStreaming();//This should only be used for debugging, it will slow things down
+            
             // set basic auth if username and password are provided in config string.
             if (!string.IsNullOrWhiteSpace(esClusterConfig.Username) && !string.IsNullOrWhiteSpace(esClusterConfig.Password))
             {
-                conSettings.SetBasicAuthentication(esClusterConfig.Username, esClusterConfig.Password);
+                conSettings.BasicAuthentication(esClusterConfig.Username, esClusterConfig.Password);
             }
 
             var esClient = new ElasticClient(conSettings);
@@ -83,7 +86,7 @@ namespace Elmah.Io.ElasticSearch
         {
             esClient.CreateIndex(defaultIndex).VerifySuccessfulResponse();
             esClient.Map<ErrorDocument>(m => m
-                .MapFromAttributes()
+                .AutoMap()
                 .Properties(CreateMultiFieldsForAllStrings)
                 )
                 .VerifySuccessfulResponse();
@@ -103,12 +106,12 @@ namespace Elmah.Io.ElasticSearch
                 var name = m.Name;
                 name = char.ToLowerInvariant(name[0]) + name.Substring(1);//lowercase the first character
                 props
-                    .MultiField(mf => mf
+                    .String(s => s                        
                         .Name(name)
                         .Fields(pprops => pprops
                             .String(ps => ps.Name(name).Index(FieldIndexOption.Analyzed))
                             .String(ps => ps.Name(MultiFieldSuffix).Index(FieldIndexOption.NotAnalyzed))
-                        )
+                        )                    
                     );
             }
             return props;

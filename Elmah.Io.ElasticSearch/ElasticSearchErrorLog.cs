@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Configuration;
-using System.Linq;
+﻿using System.Collections;
 using System.Runtime.CompilerServices;
 using Nest;
 
@@ -66,7 +63,7 @@ namespace Elmah.Io.ElasticSearch
 
         public override ErrorLogEntry GetError(string id)
         {
-            var errorDoc = _elasticClient.Get<ErrorDocument>(x => x.Id(id)).VerifySuccessfulResponse();
+            var errorDoc = _elasticClient.Get<ErrorDocument>(id).VerifySuccessfulResponse();
             var error = ErrorXml.DecodeString(errorDoc.Source.ErrorXml);
             error.ApplicationName = ApplicationName;
             var result = new ErrorLogEntry(this, id, error);
@@ -76,13 +73,18 @@ namespace Elmah.Io.ElasticSearch
         public override int GetErrors(int pageIndex, int pageSize, IList errorEntryList)
         {
             var result = _elasticClient.Search<ErrorDocument>(x => x
-                .Filter(f => f
-                    .Term("applicationName.raw", ApplicationName))
+                .Query(q=> q
+                   .Term("applicationName.raw", ApplicationName)
+                 )
                 .Skip(pageSize * pageIndex)
                 .Take(pageSize)
-                .Sort(s => s.OnField(e => e.Time).Descending())
+                .Sort(s => s
+                    .Descending(d=> d.Time)
+                 )
                 )
                 .VerifySuccessfulResponse();
+
+            //var debug = result.GetRequestString();
 
             foreach (var errorDocHit in result.Hits)
             {
