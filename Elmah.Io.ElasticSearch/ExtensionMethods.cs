@@ -33,10 +33,6 @@ namespace Elmah.Io.ElasticSearch
             {
                 return response;
             }
-            if (response.ServerError != null)
-            {
-                throw response.OriginalException;
-            }
             throw new InvalidOperationException(response.DebugInformation);
         }
 

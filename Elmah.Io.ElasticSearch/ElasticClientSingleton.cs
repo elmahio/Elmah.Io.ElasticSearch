@@ -62,6 +62,7 @@ namespace Elmah.Io.ElasticSearch
             var connectionPool = new StaticConnectionPool(esClusterConfig.NodeUris);
             var conSettings = new ConnectionSettings(connectionPool);
             conSettings.DefaultIndex(esClusterConfig.DefaultIndex);
+            //conSettings.DisableDirectStreaming();//This should only be used for debugging, it will slow things down
             
             // set basic auth if username and password are provided in config string.
             if (!string.IsNullOrWhiteSpace(esClusterConfig.Username) && !string.IsNullOrWhiteSpace(esClusterConfig.Password))

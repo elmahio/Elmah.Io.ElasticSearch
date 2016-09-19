@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Configuration;
-using System.Linq;
+﻿using System.Collections;
 using System.Runtime.CompilerServices;
 using Nest;
 
@@ -86,6 +83,8 @@ namespace Elmah.Io.ElasticSearch
                  )
                 )
                 .VerifySuccessfulResponse();
+
+            //var debug = result.GetRequestString();
 
             foreach (var errorDocHit in result.Hits)
             {
