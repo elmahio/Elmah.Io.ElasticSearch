@@ -14,7 +14,7 @@ namespace Elmah.Io.ElasticSearch.Tests
         private readonly Mock<IElasticClient> _elasticClientMock = new Mock<IElasticClient>();
 
         [Test]
-        public void CanGetErrors()
+        public void GetErrors()
         {
             // Arrange
             var fixture = new Fixture();
@@ -52,7 +52,7 @@ namespace Elmah.Io.ElasticSearch.Tests
             queryResponse.Setup(x => x.IsValid).Returns(true);
 
             _elasticClientMock
-                .Setup(x => x.Search(It.IsAny<Func<SearchDescriptor<ErrorDocument>, SearchDescriptor<ErrorDocument>>>()))
+                .Setup(x => x.Search(It.IsAny<Func<SearchDescriptor<ErrorDocument>, ISearchRequest>>()))
                 .Returns(queryResponse.Object);
 
             var errorLog = new ElasticSearchErrorLog(_elasticClientMock.Object, new Hashtable())
@@ -70,7 +70,7 @@ namespace Elmah.Io.ElasticSearch.Tests
         }
 
         [Test]
-        public void CanGetError()
+        public void GetError()
         {
             // Arrange
             var fixture = new Fixture();
@@ -86,7 +86,8 @@ namespace Elmah.Io.ElasticSearch.Tests
 
             var elasticClientMock = new Mock<IElasticClient>();
             elasticClientMock
-                .Setup(x => x.Get(id, (Func<GetDescriptor<ErrorDocument>, IGetRequest>)null))
+                //.Setup(x => x.Get(id, It.IsAny<Func<GetDescriptor<ErrorDocument>, IGetRequest>>()))
+                .Setup(x => x.Get(It.IsAny<DocumentPath<ErrorDocument>>(), It.IsAny<Func<GetDescriptor<ErrorDocument>, IGetRequest>>()))
                 .Returns(mockResponse.Object);
 
             var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object, new Hashtable())
@@ -105,7 +106,7 @@ namespace Elmah.Io.ElasticSearch.Tests
         }
 
         [Test]
-        public void CanLogError()
+        public void LogError()
         {
             // Arrange
             var fixture = new Fixture();
