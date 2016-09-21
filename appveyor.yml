@@ -1,4 +1,7 @@
 version: '2.0.0.{build}-prerelease'
+artifacts:
+- path: '*.nupkg'
+  name: nuget package  
 deploy:
   provider: NuGet
   #server:                  # remove to push to NuGet.org
