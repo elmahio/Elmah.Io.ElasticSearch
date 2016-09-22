@@ -1,3 +1,9 @@
 version: '2.0.0.{build}-prerelease'
+assembly_info:
+  patch: true
+  file: AssemblyInfo.cs
+  assembly_version: '2.0.0.{build}'
+  assembly_file_version: '2.0.0.{build}'
+  assembly_informational_version: '2.0.0.{build}'
 build:
   publish_nuget: true
