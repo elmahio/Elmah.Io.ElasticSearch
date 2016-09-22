@@ -1,4 +1,5 @@
 version: '2.0.0.{build}-prerelease'
+configuration: Release
 assembly_info:
   patch: true
   file: AssemblyInfo.cs
@@ -15,3 +16,7 @@ deploy:
   skip_symbols: false
   #symbol_server:           # remove to push symbols to SymbolSource.org
   artifact: /.*\.nupkg/
+  on:
+    branch: 
+       - master
+       - /release*/
