@@ -1,13 +1,13 @@
 # help with multiple branches and config files: https://www.appveyor.com/blog/2014/07/23/appveyor-yml-and-multiple-branches/
 environment: 
   versionNum: '2.0.0'
-version: '{versionNum}.{build}-prerelease'
+version: '%versionNum%.{build}-prerelease'
 configuration: Release
 assembly_info:
   patch: true
   file: AssemblyInfo.cs
-  assembly_version: '{versionNum}.{build}'
-  assembly_file_version: '{versionNum}.{build}'
+  assembly_version: '%versionNum%.{build}'
+  assembly_file_version: '%versionNum%.{build}'
   assembly_informational_version: '{version}'
 build:
   publish_nuget: true
