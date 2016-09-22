@@ -1,12 +1,3 @@
 version: '2.0.0.{build}-prerelease'
-artifacts:
-- path: '*.nupkg'
-  name: nuget package  
-deploy:
-  provider: NuGet
-  #server:                  # remove to push to NuGet.org
-  api_key:
-    secure: JiKtPA1DwYzvtPF2iKypjc8VQb8ADRcJ74H9RQZsPmCkaNfwBhmRA6fhCoojbFBx
-  skip_symbols: false
-  #symbol_server:           # remove to push symbols to SymbolSource.org
-  artifact: /.*\.nupkg/
+build:
+  publish_nuget: true
