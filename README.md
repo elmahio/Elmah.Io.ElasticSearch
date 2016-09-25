@@ -1,12 +1,12 @@
 # Elmah.Io.ElasticSearch
 Elmah.Io.ElasticSearch is an Elasticsearch storage backend for ELMAH.
 
+[![Build status](https://ci.appveyor.com/api/projects/status/4ucrj0qbgtg72hj0?svg=true)](https://ci.appveyor.com/project/jayhilden/elmah-io-elasticsearch)
 [![install from nuget](http://img.shields.io/nuget/v/Elmah.ElasticSearch.svg?style=flat-square)](https://www.nuget.org/packages/Elmah.ElasticSearch)
 
-Builds Status:    
-[![Build status](https://ci.appveyor.com/api/projects/status/4ucrj0qbgtg72hj0?svg=true)](https://ci.appveyor.com/project/jayhilden/elmah-io-elasticsearch)
-
-# Release 1.2 is live! [Release Notes](https://github.com/elmahio/Elmah.Io.ElasticSearch/wiki/1.2-Release-Notes)
+# Release 2.0 is finally here!  
+### [Release Notes](https://github.com/elmahio/Elmah.Io.ElasticSearch/wiki/1.2-Release-Notes)
+Note: Release 2.0 is not compatible with ElasticSearch 1.x  If you are still using 1.x then please install version 1.2.0.13 [here](https://www.nuget.org/packages/Elmah.ElasticSearch/1.2.0.31).
 
 
 ## QuickStart
