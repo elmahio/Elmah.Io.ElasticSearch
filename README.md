@@ -10,7 +10,9 @@ Elmah.Io.ElasticSearch is an Elasticsearch storage backend for ELMAH.
 
 ## Create amazing graphs and dashboards with Kibana
 ![Graph By App](docs/images/GraphByType.png)
+
 ![Graph By App](docs/images/GraphByApp.png)
+
 ![Graph By App](docs/images/PieByType.png)
 
 
