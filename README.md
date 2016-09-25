@@ -1,12 +1,17 @@
 # Elmah.Io.ElasticSearch
 Elmah.Io.ElasticSearch is an Elasticsearch storage backend for ELMAH.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/4ucrj0qbgtg72hj0?svg=true)](https://ci.appveyor.com/project/jayhilden/elmah-io-elasticsearch)
+[![Build status](https://ci.appveyor.com/api/projects/status/4ucrj0qbgtg72hj0?svg=true)](https://ci.appveyor.com/project/jayhilden/elmah-io-elasticsearch/branch/master)
 [![install from nuget](http://img.shields.io/nuget/v/Elmah.ElasticSearch.svg?style=flat-square)](https://www.nuget.org/packages/Elmah.ElasticSearch)
 
 # Release 2.0 is finally here!  
 ### [Release Notes](https://github.com/elmahio/Elmah.Io.ElasticSearch/wiki/1.2-Release-Notes)
-Note: Release 2.0 is not compatible with ElasticSearch 1.x  If you are still using 1.x then please install version 1.2.0.13 [here](https://www.nuget.org/packages/Elmah.ElasticSearch/1.2.0.31).
+**Note: Release 2.0 is not compatible with ElasticSearch 1.x  If you are still using 1.x then please install version 1.2.0.13 [here](https://www.nuget.org/packages/Elmah.ElasticSearch/1.2.0.31).**
+
+## Create amazing graphs and dashboards with Kibana
+![Graph By App](docs/images/GraphByType.png)
+![Graph By App](docs/images/GraphByApp.png)
+![Graph By App](docs/images/PieByType.png)
 
 
 ## QuickStart
