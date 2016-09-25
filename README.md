@@ -1,10 +1,10 @@
 # Elmah.Io.ElasticSearch
 Elmah.Io.ElasticSearch is an Elasticsearch storage backend for ELMAH.
 
-[![install from nuget](http://img.shields.io/nuget/v/Elmah.ElasticSearch.svg?style=flat-square)](https://www.nuget.org/packages/Elmah.ElasticSearch)[![downloads](http://img.shields.io/nuget/dt/Elmah.ElasticSearch.svg?style=flat-square)](https://www.nuget.org/packages/Elmah.ElasticSearch)    
+[![install from nuget](http://img.shields.io/nuget/v/Elmah.ElasticSearch.svg?style=flat-square)](https://www.nuget.org/packages/Elmah.ElasticSearch)
 
-Builds:    
-[![teamcity](http://img.shields.io/teamcity/http/teamcity.codebetter.com/e/bt1123.svg?style=flat-square)](http://teamcity.codebetter.com/viewType.html?buildTypeId=bt1123)
+Builds Status:    
+[![Build status](https://ci.appveyor.com/api/projects/status/4ucrj0qbgtg72hj0?svg=true)](https://ci.appveyor.com/project/jayhilden/elmah-io-elasticsearch)
 
 # Release 1.2 is live! [Release Notes](https://github.com/elmahio/Elmah.Io.ElasticSearch/wiki/1.2-Release-Notes)
 
@@ -147,6 +147,3 @@ Sample Result:
    }
 }
 ```
-## Respect
-
-[![Build by TeamCity](http://www.jetbrains.com/img/banners/Codebetter300x250.png)](http://www.jetbrains.com/teamcity/)
