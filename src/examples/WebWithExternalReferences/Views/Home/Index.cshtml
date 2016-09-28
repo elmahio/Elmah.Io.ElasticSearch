@@ -1,0 +1,23 @@
+﻿@model dynamic
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>title</title>
+</head>
+<body>
+<div>
+    Good news, just by loading this page you should have logged an error to elmah!
+    <br/>
+    But, we also want to test that elmah is automatically logging errors when the website
+    throws an exception.  You can do that by going to any page that doesn't exist.
+    <br/><br/>
+    Like <a href="~/Home/DoesNotExist" target="_blank">HERE!</a>
+</div>
+</body>
+</html>
