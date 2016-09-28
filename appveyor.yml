@@ -1,8 +1,9 @@
 # help with multiple branches and config files: https://www.appveyor.com/blog/2014/07/23/appveyor-yml-and-multiple-branches/
 environment:
-  releaseVersion: '2.0.0'
-version: '$(releaseVersion).{build}'
+  releaseVersion: '2.1.0'
+version: '$(releaseVersion).{build}-prerelease'
 configuration: Release
+skip_tags: true
 assembly_info:
   patch: true
   file: AssemblyInfo.cs
@@ -24,4 +25,4 @@ deploy:
   on:
     branch:
        - master
-       - /release*/
+       #- /release*/ # uncomment when you're ready to start pushing artifacts on the release branch
