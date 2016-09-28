@@ -1,5 +1,5 @@
 # help with multiple branches and config files: https://www.appveyor.com/blog/2014/07/23/appveyor-yml-and-multiple-branches/
-environment: 
+environment:
   releaseVersion: '2.0.0'
 version: '$(releaseVersion).{build}-prerelease'
 configuration: Release
@@ -9,6 +9,8 @@ assembly_info:
   assembly_version: '$(releaseVersion).{build}'
   assembly_file_version: '$(releaseVersion).{build}'
   assembly_informational_version: '{version}'
+before_build:
+  - nuget restore
 build:
   publish_nuget: true
 deploy:
@@ -20,6 +22,6 @@ deploy:
   #symbol_server:           # remove to push symbols to SymbolSource.org
   artifact: /.*\.nupkg/
   on:
-    branch: 
+    branch:
        - master
        - /release*/
