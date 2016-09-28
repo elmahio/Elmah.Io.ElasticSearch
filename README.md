@@ -16,10 +16,12 @@ Elmah.Io.ElasticSearch is an Elasticsearch storage backend for ELMAH.
 ![Graph By App](docs/images/PieByType.png)
 
 
-# QuickStart
+# QuickStart (Less than 5 minutes!)
 Elmah.Io.ElasticSearch is configured like other implementations for Elmah. To get started, add the following to your web.config or app.config:
 
-#### 1. Verify `sectionGroup name="elmah"`
+#### 1. *Before* installing, verify that your project is using .NET 4.6.1 or higher.
+#### 2. Install Package
+#### 3. Verify `sectionGroup name="elmah"`
 When you installed this package the `app.config` or `web.config` file should have had a new sectionGroup added with the name Elmah.
 ```
 <configuration>
@@ -33,7 +35,7 @@ When you installed this package the `app.config` or `web.config` file should hav
   </configSections>
   ...
   ```
-#### 2. Connection String & `<elmah>` configuration section
+#### 4. Connection String & `<elmah>` configuration section
 Add a connection string for the Elmah.ElasticSearch and a new section right below that which references that connection name.
 ```
     <connectionStrings>
@@ -46,7 +48,7 @@ Add a connection string for the Elmah.ElasticSearch and a new section right belo
     </elmah>
 ```
 
-#### 3. Try it!
+#### 5. Try it!
 ##### Web Application
 On a web application simply go to a URL that doesn't exist and it should log a message to elmah.
 
