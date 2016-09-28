@@ -19,16 +19,35 @@ Elmah.Io.ElasticSearch is an Elasticsearch storage backend for ELMAH.
 ## QuickStart
 Elmah.Io.ElasticSearch is configured like other implementations for Elmah. To get started, add the following to your web.config or app.config:
 
-#### 1. Connection String & `<elmah>` configuration section
+#### 1. Verify `sectionGroup name="elmah"`
+When you installed this package the `app.config` or `web.config` file should have had a new sectionGroup added with the name Elmah.
+```
+<configuration>
+  <configSections>
+    <sectionGroup name="elmah">
+      <section name="security" requirePermission="false" type="Elmah.SecuritySectionHandler, Elmah" />
+      <section name="errorLog" requirePermission="false" type="Elmah.ErrorLogSectionHandler, Elmah" />
+      <section name="errorMail" requirePermission="false" type="Elmah.ErrorMailSectionHandler, Elmah" />
+      <section name="errorFilter" requirePermission="false" type="Elmah.ErrorFilterSectionHandler, Elmah" />
+    </sectionGroup>
+  </configSections>
+  ...
+  ```
+#### 2. Connection String & `<elmah>` configuration section
+Add a connection string for the Elmah.ElasticSearch and a new section right below that which references that connection name.
 ```
     <connectionStrings>
-        <add name="ElmahElasticSearch" connectionString="Nodes=http://localhost:9200;DefaultIndex=elmah;Username=elmahUser;Password=elmahPass" />
+        <add name="ElmahElasticSearch"
+           connectionString="Nodes=http://localhost:9200;DefaultIndex=elmah;Username=elmahUser;Password=elmahPass" />
     </connectionStrings>
     <elmah>
         <errorLog type="Elmah.Io.ElasticSearch.ElasticSearchErrorLog, Elmah.Io.ElasticSearch"
         connectionStringName="ElmahElasticSearch" />
     </elmah>
 ```
+
+#### 3. Try it!
+On a web application simply go to a URL that doesn't exist and it should log a message to elmah
 
 ## Configuration
 The ElasticSearch connection string supports the following information:
