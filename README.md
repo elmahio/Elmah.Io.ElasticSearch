@@ -68,7 +68,7 @@ private static void WriteElmahException(Exception ex)
 ```
 
 #### 4. Examples
-[Example Web Application](src/examples/src/examples/WebWithExternalReferences)
+[Example Web Application](src/examples/WebWithExternalReferences)
 
 [Example Console Application](src/examples/Elmah.Io.ElasticSearch.ConsoleTester)
 
