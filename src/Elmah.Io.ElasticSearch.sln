@@ -1,22 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elmah.Io.ElasticSearch", "Elmah.Io.ElasticSearch\Elmah.Io.ElasticSearch.csproj", "{C64356CA-718B-463D-8274-A2926BEDAC7A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{010D28FA-C235-4438-86DE-4866D8721F9F}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elmah.Io.ElasticSearch.Tests", "testing\Elmah.Io.ElasticSearch.Tests\Elmah.Io.ElasticSearch.Tests.csproj", "{3A84C273-9EF4-4A31-865B-832E1B366864}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elmah.Io.ElasticSearch.Tests", "Elmah.Io.ElasticSearch.Tests\Elmah.Io.ElasticSearch.Tests.csproj", "{3A84C273-9EF4-4A31-865B-832E1B366864}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elmah.Io.ElasticSearch.Web", "examples\Elmah.Io.ElasticSearch.Web\Elmah.Io.ElasticSearch.Web.csproj", "{D0C9BE26-BE4B-4B29-9C15-302FDAFB4F28}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elmah.Io.ElasticSearch.Web", "Elmah.Io.ElasticSearch.Web\Elmah.Io.ElasticSearch.Web.csproj", "{D0C9BE26-BE4B-4B29-9C15-302FDAFB4F28}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elmah.Io.ElasticSearch.ConsoleTester", "Elmah.Io.ElasticSearch.ConsoleTester\Elmah.Io.ElasticSearch.ConsoleTester.csproj", "{DF31FCF5-BEC3-4F78-A472-4605805CDCE4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elmah.Io.ElasticSearch.ConsoleTester", "examples\Elmah.Io.ElasticSearch.ConsoleTester\Elmah.Io.ElasticSearch.ConsoleTester.csproj", "{DF31FCF5-BEC3-4F78-A472-4605805CDCE4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleApps", "ExampleApps", "{2A642E1D-44CE-4C8F-B70D-04F7FD6E03A2}"
 EndProject
