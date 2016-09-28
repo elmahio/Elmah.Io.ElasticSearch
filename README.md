@@ -19,15 +19,14 @@ Elmah.Io.ElasticSearch is an Elasticsearch storage backend for ELMAH.
 ## QuickStart
 Elmah.Io.ElasticSearch is configured like other implementations for Elmah. To get started, add the following to your web.config or app.config:
 
-#### 1. Connection String
-#### 2. `<elmah>` configuration section
+#### 1. Connection String & `<elmah>` configuration section
 ```
     <connectionStrings>
         <add name="ElmahElasticSearch" connectionString="Nodes=http://localhost:9200,http://server2:9200, http://server3:9200;DefaultIndex=elmah;Username=elmahUser;Password=elmahPass" />
     </connectionStrings>
     <elmah>
         <errorLog type="Elmah.Io.ElasticSearch.ElasticSearchErrorLog, Elmah.Io.ElasticSearch"
-        connectionStringName="ElmahIoElasticSearch" />
+        connectionStringName="ElmahElasticSearch" />
     </elmah>
 ```
 
