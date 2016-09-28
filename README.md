@@ -22,7 +22,7 @@ Elmah.Io.ElasticSearch is configured like other implementations for Elmah. To ge
 #### 1. Connection String & `<elmah>` configuration section
 ```
     <connectionStrings>
-        <add name="ElmahElasticSearch" connectionString="Nodes=http://localhost:9200,http://server2:9200, http://server3:9200;DefaultIndex=elmah;Username=elmahUser;Password=elmahPass" />
+        <add name="ElmahElasticSearch" connectionString="Nodes=http://localhost:9200;DefaultIndex=elmah;Username=elmahUser;Password=elmahPass" />
     </connectionStrings>
     <elmah>
         <errorLog type="Elmah.Io.ElasticSearch.ElasticSearchErrorLog, Elmah.Io.ElasticSearch"
