@@ -52,8 +52,8 @@
       <HintPath>..\..\packages\elmah.corelibrary.1.2.2\lib\Elmah.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Elmah.Io.ElasticSearch, Version=2.0.0.35, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Elmah.ElasticSearch.2.0.0.35-prerelease\lib\net461\Elmah.Io.ElasticSearch.dll</HintPath>
+    <Reference Include="Elmah.Io.ElasticSearch, Version=2.0.0.45, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Elmah.ElasticSearch.2.0.0.45\lib\net461\Elmah.Io.ElasticSearch.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="JetBrains.Annotations, Version=10.0.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
