@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Elasticsearch.Net;
-using JetBrains.Annotations;
 using Nest;
 
 namespace Elmah.Io.ElasticSearch
@@ -42,8 +40,7 @@ namespace Elmah.Io.ElasticSearch
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="paramName"></param>
-        [ContractAnnotation("obj:null => halt")]
-        public static void ThrowIfNull<T>([NoEnumeration] this T obj, string paramName) where T : class
+        public static void ThrowIfNull<T>(this T obj, string paramName) where T : class
         {
             if (obj == null)
             {
