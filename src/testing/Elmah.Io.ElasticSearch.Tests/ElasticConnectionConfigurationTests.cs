@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
 using Moq;
-using Nest;
 using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 
 namespace Elmah.Io.ElasticSearch.Tests
 {
@@ -133,7 +132,7 @@ namespace Elmah.Io.ElasticSearch.Tests
 
             //valid date formats
             const string fmt1 = "yyyy.MM.dd";
-            const string fmt2 = "yyyy.MM";            
+            const string fmt2 = "yyyy.MM";
             yield return new TestCaseData(string.Format("DefaultIndex=${{{0}}}", fmt1)).Returns(DateTimeOffset.Now.ToString(fmt1));
             yield return new TestCaseData(string.Format("DefaultIndex=prefix_${{{0}}}", fmt1)).Returns("prefix_" + DateTimeOffset.Now.ToString(fmt1));
             yield return new TestCaseData(string.Format("DefaultIndex=prefix_${{{0}}}_suffix", fmt1)).Returns(string.Format("prefix_{0}_suffix", DateTimeOffset.Now.ToString(fmt1)));
@@ -164,12 +163,12 @@ namespace Elmah.Io.ElasticSearch.Tests
                 CallBase = true
             };
             const string connectionString = "Nodes=https://test:9200,http://test2:9300/;DefaultIndex=defaultIndex";
-            
+
             //act
             serviceLocal.Object.Parse(connectionString);
 
             //assert
-            serviceLocal.Verify(x=>x.GetDefaultIndex(connectionString), Times.Once);
+            serviceLocal.Verify(x => x.GetDefaultIndex(connectionString), Times.Once);
         }
 
         #region tests for depreciated methods
@@ -234,7 +233,7 @@ namespace Elmah.Io.ElasticSearch.Tests
         [TestCase("http://localhost:9200/indexHere", "http://localhost:9200/indexHere")]
         public void RemoveTralingSlash(string origString, string expectedString)
         {
-            string newString = ElasticConnectionConfiguration.RemoveTrailingSlash(origString);
+            var newString = ElasticConnectionConfiguration.RemoveTrailingSlash(origString);
 
             Assert.AreEqual(expectedString, newString);
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -92,7 +92,7 @@ namespace Elmah.Io.ElasticSearch
             var dt = DateTimeOffset.Now.ToString(dateFormat);
 
             var newIndexName = dateFormatRegex.Replace(indexName, dt);
-            return newIndexName;            
+            return newIndexName;
         }
 
         internal string ParseSingle(string connectionString, string key)
@@ -106,11 +106,7 @@ namespace Elmah.Io.ElasticSearch
 
             var defaultIndexSegment = connectionStringSegments.FirstOrDefault(p => p.StartsWith(key, StringComparison.OrdinalIgnoreCase));
 
-            if (defaultIndexSegment == null)
-            {
-                return null;
-            }
-            return defaultIndexSegment.Substring(key.Length).TrimToNull();
+            return defaultIndexSegment?.Substring(key.Length).TrimToNull();
         }
 
         internal IEnumerable<Uri> ParseCsv(string connectionString, string key)
@@ -145,7 +141,7 @@ namespace Elmah.Io.ElasticSearch
             return new ElasticSearchClusterConfiguration
             {
                 DefaultIndex = defaultIndex,
-                NodeUris = new List<Uri> {new Uri(conString)}
+                NodeUris = new List<Uri> { new Uri(conString) }
             };
         }
 
@@ -172,10 +168,10 @@ namespace Elmah.Io.ElasticSearch
         [Obsolete("this is here to support the ES connection string pre 1.2 release")]
         internal static string GetDefaultIndexFromConnectionString(string connectionString)
         {
-            Uri myUri = new Uri(connectionString);
+            var myUri = new Uri(connectionString);
 
-            string[] pathSegments = myUri.Segments;
-            string ourIndex = string.Empty;
+            var pathSegments = myUri.Segments;
+            var ourIndex = string.Empty;
 
             if (pathSegments.Length > 1)
             {

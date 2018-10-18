@@ -106,11 +106,11 @@ namespace Elmah.Io.ElasticSearch
                 var name = m.Name;
                 name = char.ToLowerInvariant(name[0]) + name.Substring(1);//lowercase the first character
                 props
-                    .String(s => s                        
+                    .Text(s => s                        
                         .Name(name)
                         .Fields(pprops => pprops
-                            .String(ps => ps.Name(name).Index(FieldIndexOption.Analyzed))
-                            .String(ps => ps.Name(MultiFieldSuffix).Index(FieldIndexOption.NotAnalyzed))
+                            .Text(ps => ps.Name(name).Index(true))
+                            .Text(ps => ps.Name(MultiFieldSuffix).Index(false))
                         )                    
                     );
             }

@@ -1,6 +1,6 @@
 # help with multiple branches and config files: https://www.appveyor.com/blog/2014/07/23/appveyor-yml-and-multiple-branches/
 environment:
-  releaseVersion: '2.0.1'
+  releaseVersion: '3.0.1'
 version: '$(releaseVersion).{build}'
 configuration: Release
 assembly_info:

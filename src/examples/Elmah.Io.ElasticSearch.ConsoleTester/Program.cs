@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 
 namespace Elmah.Io.ElasticSearch.ConsoleTester
 {
@@ -17,8 +13,8 @@ namespace Elmah.Io.ElasticSearch.ConsoleTester
 
         private static void WriteElmahException(Exception ex)
         {
-                var elmahCon = ErrorLog.GetDefault(null);
-                elmahCon.Log(new Error(ex));
+            var elmahCon = ErrorLog.GetDefault(null);
+            elmahCon.Log(new Error(ex));
         }
     }
 }
