@@ -3,6 +3,7 @@ environment:
   releaseVersion: '3.0.0'
 version: '$(releaseVersion).{build}'
 configuration: Release
+image: Visual Studio 2017
 assembly_info:
   patch: true
   file: AssemblyInfo.cs
@@ -10,6 +11,7 @@ assembly_info:
   assembly_file_version: '$(releaseVersion).{build}'
   assembly_informational_version: '{version}'
 before_build:
+  - ps: dotnet restore
   - nuget restore src\Elmah.Io.ElasticSearch.sln
 build:
   publish_nuget: true
