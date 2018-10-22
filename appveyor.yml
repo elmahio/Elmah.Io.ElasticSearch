@@ -1,5 +1,4 @@
 # help with multiple branches and config files: https://www.appveyor.com/blog/2014/07/23/appveyor-yml-and-multiple-branches/
-# version format
 environment:
   releaseVersion: '3.0.0'
 version: '$(releaseVersion).{build}'
@@ -11,10 +10,9 @@ assembly_info:
   assembly_file_version: '$(releaseVersion).{build}'
   assembly_informational_version: '{version}'
 before_build:
-  - nuget restore
+  - nuget restore src\Elmah.Io.ElasticSearch.sln
 build:
   publish_nuget: true
-image: Visual Studio 2017 
 deploy:
   provider: NuGet
   #server:                  # remove to push to NuGet.org
