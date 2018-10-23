@@ -11,7 +11,7 @@ assembly_info:
   assembly_file_version: '$(releaseVersion).{build}'
   assembly_informational_version: '{version}'
 before_build:
-  - ps: dotnet restore #suggested by Thomas from elmah.io
+  - ps: dotnet restore src\Elmah.Io.ElasticSearch.sln #suggested by Thomas from elmah.io
 build:
   publish_nuget: true
 deploy:
