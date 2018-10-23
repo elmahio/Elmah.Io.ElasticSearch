@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Configuration;
-using System.Linq;
 using Elasticsearch.Net;
 //using Elasticsearch.Net.ConnectionPool;
 using Nest;
+using System;
+using System.Collections;
+using System.Configuration;
+using System.Linq;
 
 namespace Elmah.Io.ElasticSearch
 {
@@ -50,20 +50,11 @@ namespace Elmah.Io.ElasticSearch
         private IElasticClient GetElasticClient(string connectionString, IDictionary config)
         {
             var esClusterConfig = _connectionConfiguration.Parse(connectionString);
-            // ReSharper disable once ConvertIfStatementToNullCoalescingExpression
-            if (esClusterConfig == null)
-            {
-                //connection string is supplied in a deprecated format
-                #pragma warning disable 618
-                esClusterConfig = _connectionConfiguration.BuildClusterConfigDeprecated(config, connectionString);
-                #pragma warning restore 618
-            }
-
             var connectionPool = new StaticConnectionPool(esClusterConfig.NodeUris);
             var conSettings = new ConnectionSettings(connectionPool);
             conSettings.DefaultIndex(esClusterConfig.DefaultIndex);
             //conSettings.DisableDirectStreaming();//This should only be used for debugging, it will slow things down
-            
+
             // set basic auth if username and password are provided in config string.
             if (!string.IsNullOrWhiteSpace(esClusterConfig.Username) && !string.IsNullOrWhiteSpace(esClusterConfig.Password))
             {
@@ -106,12 +97,12 @@ namespace Elmah.Io.ElasticSearch
                 var name = m.Name;
                 name = char.ToLowerInvariant(name[0]) + name.Substring(1);//lowercase the first character
                 props
-                    .String(s => s                        
+                    .Text(s => s
                         .Name(name)
                         .Fields(pprops => pprops
-                            .String(ps => ps.Name(name).Index(FieldIndexOption.Analyzed))
-                            .String(ps => ps.Name(MultiFieldSuffix).Index(FieldIndexOption.NotAnalyzed))
-                        )                    
+                            .Text(ps => ps.Name(name).Index(true))
+                            .Text(ps => ps.Name(MultiFieldSuffix).Index(false))
+                        )
                     );
             }
             return props;

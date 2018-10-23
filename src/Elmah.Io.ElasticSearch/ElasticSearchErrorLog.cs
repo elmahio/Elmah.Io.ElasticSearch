@@ -1,4 +1,6 @@
-﻿using System.Collections;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Runtime.CompilerServices;
 using Nest;
 
@@ -11,13 +13,13 @@ namespace Elmah.Io.ElasticSearch
         internal string EnvironmentName;
 
         private static IElasticClient _elasticClient;
-        
+
         // ReSharper disable once UnusedMember.Global
         public ElasticSearchErrorLog(IDictionary config)
         {
             InitializeConfigParameters(config);
 
-            _elasticClient = ElasticClientSingleton.GetInstance(config).Client;
+            _elasticClient = ElasticClientSingleton.GetInstance(config).Client;        
         }
 
         /// <summary>
@@ -39,26 +41,41 @@ namespace Elmah.Io.ElasticSearch
         }
 
         public override string Log(Error error)
-        {
-            var indexResponse = _elasticClient.Index(new ErrorDocument
-            {
-                ApplicationName = ApplicationName,
-                ErrorXml = ErrorXml.EncodeString(error),
-                Detail = error.Detail,
-                HostName = error.HostName,
-                Message = error.Message,
-                Source = error.Source,
-                StatusCode = error.StatusCode,
-                Time = error.Time,
-                Type = error.Type,
-                User = error.User,
-                WebHostHtmlMessage = error.WebHostHtmlMessage,
-                CustomerName = CustomerName,
-                EnvironmentName = EnvironmentName
-            });
+        {                   
+            var indexResponse = _elasticClient.Index
+                (new IndexRequest<ErrorDocument>(new ErrorDocument
+                {
+                    ApplicationName = ApplicationName,
+                    ErrorXml = ErrorXml.EncodeString(error),
+                    Detail = error.Detail,
+                    HostName = error.HostName,
+                    Message = error.Message,
+                    Source = error.Source,
+                    StatusCode = error.StatusCode,
+                    Time = error.Time,
+                    Type = error.Type,
+                    User = error.User,
+                    WebHostHtmlMessage = error.WebHostHtmlMessage,
+                    CustomerName = CustomerName,
+                    EnvironmentName = EnvironmentName,
+                    ServerVariables = ConvertToKeyValue(error.ServerVariables)
+                }));
+
             indexResponse.VerifySuccessfulResponse();
 
             return indexResponse.Id;
+        }
+
+        private Dictionary<string, string> ConvertToKeyValue(NameValueCollection serverVariables)
+        {
+            var dict = new Dictionary<string, string>();
+
+            foreach (var serverVariable in serverVariables.AllKeys)
+            {
+                dict.Add(serverVariable, serverVariables[serverVariable]);
+            }      
+
+            return dict;
         }
 
         public override ErrorLogEntry GetError(string id)
@@ -72,17 +89,31 @@ namespace Elmah.Io.ElasticSearch
 
         public override int GetErrors(int pageIndex, int pageSize, IList errorEntryList)
         {
+
             var result = _elasticClient.Search<ErrorDocument>(x => x
-                .Query(q=> q
-                   .Term("applicationName.raw", ApplicationName)
-                 )
-                .Skip(pageSize * pageIndex)
-                .Take(pageSize)
-                .Sort(s => s
-                    .Descending(d=> d.Time)
-                 )
+                    .Query(q => q
+                        .Term("applicationName", ApplicationName)
+                    )
+                    .Skip(pageSize * pageIndex)
+                    .Take(pageSize)
+                    .Sort(s => s
+                        .Descending(d => d.Time)
+                    )
                 )
                 .VerifySuccessfulResponse();
+
+
+            //var result = _elasticClient.Search<ErrorDocument>(x => x
+            //    .Query(q=> q
+            //       .Term("applicationName.raw", ApplicationName)
+            //     )
+            //    .Skip(pageSize * pageIndex)
+            //    .Take(pageSize)
+            //    .Sort(s => s
+            //        .Descending(d=> d.Time)
+            //     )
+            //    )
+            //    .VerifySuccessfulResponse();
 
             //var debug = result.GetRequestString();
 

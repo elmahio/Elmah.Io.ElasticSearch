@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using Nest;
 
 namespace Elmah.Io.ElasticSearch
@@ -11,13 +12,16 @@ namespace Elmah.Io.ElasticSearch
     {
         public string Id { get; set; }
 
-        [String(Index = FieldIndexOption.No)]
+        [Text(Index = false)]
         public string ErrorXml { get; set; }
 
+        [Text(Index = true, Fielddata = true)]
         public string ApplicationName { get; set; }
 
+        [Text(Index = true, Fielddata = true)]
         public string HostName { get; set; }
 
+        [Text(Index = true)]
         public string Type { get; set; }
 
         public string Source { get; set; }
@@ -37,6 +41,14 @@ namespace Elmah.Io.ElasticSearch
 
         public string EnvironmentName { get; set; }
 
+        [Text(Index = true, Fielddata = true)]
         public string CustomerName { get; set; }
+
+        [Text(Index = true, Fielddata = true)]
+        public string TenantId { get; set; }
+
+        public Dictionary<string, string> ServerVariables { get; set; } = new Dictionary<string, string>();
     }
+
+
 }

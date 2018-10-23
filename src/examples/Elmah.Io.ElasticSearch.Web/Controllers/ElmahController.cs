@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Web;
 using System.Web.Mvc;
 
@@ -80,9 +80,8 @@ namespace Elmah.Io.ElasticSearch.Web.Controllers
             var currentContext = GetCurrentContext(context);
 
             var httpHandler = factory.GetHandler(currentContext, null, null, null);
-            var httpAsyncHandler = httpHandler as IHttpAsyncHandler;
 
-            if (httpAsyncHandler != null)
+            if (httpHandler is IHttpAsyncHandler httpAsyncHandler)
             {
                 httpAsyncHandler.BeginProcessRequest(currentContext, r => { }, null);
                 return;

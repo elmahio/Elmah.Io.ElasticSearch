@@ -120,7 +120,7 @@ namespace Elmah.Io.ElasticSearch.Tests
             responseMock.Setup(x => x.Id).Returns(id);
             responseMock.Setup(x => x.IsValid).Returns(true);
             elasticClientMock
-                .Setup(x => x.Index(It.IsAny<ErrorDocument>(), It.IsAny<Func<IndexDescriptor<ErrorDocument>, IndexDescriptor<ErrorDocument>>>()))
+                .Setup(x => x.Index(It.IsAny<IIndexRequest<ErrorDocument>>()))
                 .Returns(responseMock.Object);
 
             var errorLog = new ElasticSearchErrorLog(elasticClientMock.Object, new Hashtable())
@@ -135,20 +135,20 @@ namespace Elmah.Io.ElasticSearch.Tests
             Assert.That(returnId, Is.EqualTo(id));
             elasticClientMock.Verify(
                 x =>
-                x.Index(
-                    It.Is<ErrorDocument>(
-                        d =>
-                        d.ApplicationName == applicationName 
-                        && d.Detail == error.Detail 
-                        && d.HostName == error.HostName 
-                        && d.Message == error.Message 
-                        && d.Source == error.Source 
-                        && d.StatusCode == error.StatusCode 
-                        && d.Time == error.Time 
-                        && d.Type == error.Type 
-                        && d.User == error.User 
-                        && d.WebHostHtmlMessage == error.WebHostHtmlMessage
-                        ), It.IsAny<Func<IndexDescriptor<ErrorDocument>, IndexDescriptor<ErrorDocument>>>()));
+                    x.Index(
+                        It.Is<IIndexRequest<ErrorDocument>>(
+                            d =>
+                                d.Document.ApplicationName == applicationName
+                                && d.Document.Detail == error.Detail
+                                && d.Document.HostName == error.HostName
+                                && d.Document.Message == error.Message
+                                && d.Document.Source == error.Source
+                                && d.Document.StatusCode == error.StatusCode
+                                && d.Document.Time == error.Time
+                                && d.Document.Type == error.Type
+                                && d.Document.User == error.User
+                                && d.Document.WebHostHtmlMessage == error.WebHostHtmlMessage
+                        )));
         }
 
 

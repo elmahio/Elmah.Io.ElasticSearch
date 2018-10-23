@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -29,7 +28,6 @@ namespace Elmah.Io.ElasticSearch
         /// </example>
         ElasticSearchClusterConfiguration Parse(string connectionString);
 
-        ElasticSearchClusterConfiguration BuildClusterConfigDeprecated(IDictionary config, string connectionString);
     }
 
     internal class ElasticConnectionConfiguration : IElasticConnectionConfiguration
@@ -92,7 +90,7 @@ namespace Elmah.Io.ElasticSearch
             var dt = DateTimeOffset.Now.ToString(dateFormat);
 
             var newIndexName = dateFormatRegex.Replace(indexName, dt);
-            return newIndexName;            
+            return newIndexName;
         }
 
         internal string ParseSingle(string connectionString, string key)
@@ -106,11 +104,7 @@ namespace Elmah.Io.ElasticSearch
 
             var defaultIndexSegment = connectionStringSegments.FirstOrDefault(p => p.StartsWith(key, StringComparison.OrdinalIgnoreCase));
 
-            if (defaultIndexSegment == null)
-            {
-                return null;
-            }
-            return defaultIndexSegment.Substring(key.Length).TrimToNull();
+            return defaultIndexSegment?.Substring(key.Length).TrimToNull();
         }
 
         internal IEnumerable<Uri> ParseCsv(string connectionString, string key)
@@ -134,74 +128,5 @@ namespace Elmah.Io.ElasticSearch
                 .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(ns => new Uri(ns));
         }
-
-        #region deprecated methods
-
-        [Obsolete("this is here to support the ES connection string pre 1.2 release")]
-        public ElasticSearchClusterConfiguration BuildClusterConfigDeprecated(IDictionary config, string connectionString)
-        {
-            var defaultIndex = GetDefaultIndex(config, connectionString);
-            var conString = RemoveDefaultIndexFromConnectionString(connectionString);
-            return new ElasticSearchClusterConfiguration
-            {
-                DefaultIndex = defaultIndex,
-                NodeUris = new List<Uri> {new Uri(conString)}
-            };
-        }
-
-
-        /// <summary>
-        /// In the previous version the default index would come from the elmah configuration.
-        /// 
-        /// This version supports pulling the default index from the connection string which is cleaner and easier to manage.
-        /// </summary>
-        [Obsolete("this is here to support the ES connection string pre 1.2 release")]
-        internal static string GetDefaultIndex(IDictionary config, string connectionString)
-        {
-            //step 1: try to get the default index from the connection string
-            var defaultConnectionString = GetDefaultIndexFromConnectionString(connectionString);
-            if (!string.IsNullOrEmpty(defaultConnectionString))
-            {
-                return defaultConnectionString;
-            }
-
-            //step 2: we couldn't find it in the connection string so get it from the elmah config section or use the default
-            return !string.IsNullOrWhiteSpace(config["defaultIndex"] as string) ? config["defaultIndex"].ToString().ToLower() : "elmah";
-        }
-
-        [Obsolete("this is here to support the ES connection string pre 1.2 release")]
-        internal static string GetDefaultIndexFromConnectionString(string connectionString)
-        {
-            Uri myUri = new Uri(connectionString);
-
-            string[] pathSegments = myUri.Segments;
-            string ourIndex = string.Empty;
-
-            if (pathSegments.Length > 1)
-            {
-                //We might have a index here
-                ourIndex = pathSegments[1];
-                ourIndex = RemoveTrailingSlash(ourIndex);
-            }
-
-            return ourIndex;
-        }
-
-        internal static string RemoveTrailingSlash(string connectionString)
-        {
-            if (connectionString.EndsWith("/"))
-            {
-                connectionString = connectionString.Substring(0, connectionString.Length - 1);
-            }
-
-            return connectionString;
-        }
-
-        internal static string RemoveDefaultIndexFromConnectionString(string connectionString)
-        {
-            var uri = new Uri(connectionString);
-            return uri.GetLeftPart(UriPartial.Authority);
-        }
-        #endregion
     }
 }
