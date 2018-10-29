@@ -18,7 +18,7 @@
     <projectUrl>https://github.com/elmahio/Elmah.Io.ElasticSearch</projectUrl>
   </metadata>
   <files>
-    <file src="bin\$Configuration$\Elmah.Io.ElasticSearch.dll" target="lib\net46\Elmah.Io.ElasticSearch.dll" />
-    <file src="bin\$Configuration$\Elmah.Io.ElasticSearch.pdb" target="lib\net46\Elmah.Io.ElasticSearch.pdb" />
+    <file src="bin\$Configuration$\Elmah.Io.ElasticSearch.dll" target="lib\net472\Elmah.Io.ElasticSearch.dll" />
+    <file src="bin\$Configuration$\Elmah.Io.ElasticSearch.pdb" target="lib\net472\Elmah.Io.ElasticSearch.pdb" />
   </files>
 </package>
